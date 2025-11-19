@@ -91,5 +91,4 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
 	checkBus(0);
 
 	mario_bros();
-	mario_bros();
 }
