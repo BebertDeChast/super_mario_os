@@ -2,21 +2,18 @@
 #include <drivers/Ecran.h>
 #include <drivers/PortSerie.h>
 
-// TP2
 #include <sextant/interruptions/idt.h>
 #include <sextant/interruptions/irq.h>
 #include <sextant/interruptions/handler/handler_tic.h>
 #include <sextant/interruptions/handler/handler_clavier.h>
 #include <drivers/timer.h>
 #include <drivers/Clavier.h>
-// TP3
+
 #include <sextant/memoire/memoire.h>
 
-// TP4
 #include <sextant/ordonnancements/cpu_context.h>
 #include <sextant/ordonnancements/preemptif/thread.h>
 #include <sextant/types.h>
-
 
 #include <sextant/Synchronisation/Spinlock/Spinlock.h>
 
@@ -27,62 +24,65 @@
 #include <sextant/sprite.h>
 #include <Applications/MarioBros/Movement.h>
 
+#include <Applications/Level/Level.h>
 
-extern char __e_kernel,__b_kernel, __b_data, __e_data,  __b_stack, __e_load ;
+extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;
 
-extern vaddr_t bootstrap_stack_bottom; //Adresse de début de la pile d'exécution
-extern size_t bootstrap_stack_size;//Taille de la pile d'exécution
+extern vaddr_t bootstrap_stack_bottom; // Adresse de début de la pile d'exécution
+extern size_t bootstrap_stack_size;	   // Taille de la pile d'exécution
 
+void mario_bros()
+{
+	EcranBochs display(640, 400, VBE_MODE::_8);
 
+	Level level(&display);
 
-void mario_bros() {
-	EcranBochs vga(640, 400, VBE_MODE::_8);
-
-    vga.init();
-    vga.clear(0);
+	display.init();
+	display.clear(0);
 
 	// only usefull in 4 or 8 bits modes
-	vga.set_palette(palette_vga);
-	vga.plot_palette(0, 0, 25);
+	display.set_palette(palette_vga);
+	display.plot_palette(0, 0, 25);
 
 	int x = 0;
 	int y = 200;
 	bool isRight = true;
 	while (true) {
-		vga.clear(1);
+		display.clear(1);
 		update_mario_position(x, y, 640, 400, isRight);
 
+		level.afficheNiveau();
 		unsigned char* currentSprite = isRight ? sprite_data : sprite_data_reversed;
-		vga.plot_sprite(currentSprite, SPRITE_WIDTH, SPRITE_HEIGHT, x, y);
-		vga.swapBuffer(); // call this after you finish drawing your frame to display it, it avoids screen tearing
+		display.plot_sprite(currentSprite, SPRITE_WIDTH, SPRITE_HEIGHT, x, y);
+		display.swapBuffer(); // call this after you finish drawing your frame to display it, it avoids screen tearing
 	}
 }
 
-
-extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
+extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
+{
 	Ecran ecran;
 	Timer timer;
 
 	idt_setup();
 	irq_setup();
-	//Initialisation de la frequence de l'horloge
+	// Initialisation de la frequence de l'horloge
 
 	timer.i8254_set_frequency(1000);
 	irq_set_routine(IRQ_TIMER, ticTac);
 
-	asm volatile("sti\n");//Autorise les interruptions
+	asm volatile("sti\n"); // Autorise les interruptions
 
 	irq_set_routine(IRQ_KEYBOARD, handler_clavier);
 
-	multiboot_info_t* mbi;
-	mbi = (multiboot_info_t*)addr;
+	multiboot_info_t *mbi;
+	mbi = (multiboot_info_t *)addr;
 
-	mem_setup(& __e_kernel,(mbi->mem_upper<<10) + (1<<20),&ecran);
+	mem_setup(&__e_kernel, (mbi->mem_upper << 10) + (1 << 20), &ecran);
 
 	ecran.effacerEcran(NOIR);
 
-	thread_subsystem_setup(bootstrap_stack_bottom,bootstrap_stack_size);
+	thread_subsystem_setup(bootstrap_stack_bottom, bootstrap_stack_size);
 	sched_subsystem_setup();
 
 	irq_set_routine(IRQ_TIMER, sched_clk);
@@ -90,5 +90,6 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
 	// initialize pci bus to detect GPU address
 	checkBus(0);
 
+	mario_bros();
 	mario_bros();
 }
