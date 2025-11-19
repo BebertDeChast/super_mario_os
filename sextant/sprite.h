@@ -7,6 +7,7 @@
 
 extern unsigned char palette_vga[256][3];
 extern unsigned char sprite_data[SPRITE_WIDTH*SPRITE_HEIGHT];
+extern unsigned char sprite_data_reversed[SPRITE_WIDTH*SPRITE_HEIGHT];
 extern unsigned char sprite_door_data[SPRITE_WIDTH*SPRITE_HEIGHT];
 
 #endif

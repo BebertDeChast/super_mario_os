@@ -25,6 +25,7 @@
 #include <drivers/EcranBochs.h>
 
 #include <sextant/sprite.h>
+#include <Applications/MarioBros/Movement.h>
 
 
 extern char __e_kernel,__b_kernel, __b_data, __e_data,  __b_stack, __e_load ;
@@ -47,13 +48,13 @@ void mario_bros() {
 
 	int x = 0;
 	int y = 200;
+	bool isRight = true;
 	while (true) {
 		vga.clear(1);
-		vga.plot_sprite(sprite_data, SPRITE_WIDTH, SPRITE_HEIGHT, x, y);
-		// Simple gravity simulation
-		if (y < 368) {
-			y += 4; // fall down
-		}
+		update_mario_position(x, y, 640, 400, isRight);
+
+		unsigned char* currentSprite = isRight ? sprite_data : sprite_data_reversed;
+		vga.plot_sprite(currentSprite, SPRITE_WIDTH, SPRITE_HEIGHT, x, y);
 		vga.swapBuffer(); // call this after you finish drawing your frame to display it, it avoids screen tearing
 	}
 }
@@ -89,4 +90,5 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
 	// initialize pci bus to detect GPU address
 	checkBus(0);
 
+	mario_bros();
 }
