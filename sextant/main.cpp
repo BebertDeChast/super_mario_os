@@ -33,57 +33,31 @@ int i;
 extern vaddr_t bootstrap_stack_bottom; //Adresse de début de la pile d'exécution
 extern size_t bootstrap_stack_size;//Taille de la pile d'exécution
 
-void demo_vga() {
-	set_vga_mode13(); // set VGA mode
-	set_palette_vga(palette_vga); // set to given palette
 
-	ui16_t offset = 0;
-	while(1) {
-		clear_vga_screen(0); // put the color 0 on each pixel
-		plot_square(offset, 50, 25, 4); // plot a square of 25 width at 50,50 of color 4
-		draw_sprite(sprite_door_data, 32, 32, 100,100); // draw the 32x32 sprite at 100,100
-		offset = (offset + 1) % 640;
-	}
-}
 
-void demo_bochs_8() {
+void mario_bros() {
 	EcranBochs vga(640, 400, VBE_MODE::_8);
 
     vga.init();
     vga.clear(0);
 
-    // only usefull in 4 or 8 bits modes
-    vga.set_palette(palette_vga);
-    vga.plot_palette(0, 0, 25);
+	// only usefull in 4 or 8 bits modes
+	vga.set_palette(palette_vga);
+	vga.plot_palette(0, 0, 25);
 
-	int offset = 0;
+	int x = 0;
+	int y = 200;
 	while (true) {
 		vga.clear(1);
-		vga.plot_sprite(sprite_data, SPRITE_WIDTH, SPRITE_HEIGHT, offset, 200);
-		offset = (offset+1) % (640);
+		vga.plot_sprite(sprite_data, SPRITE_WIDTH, SPRITE_HEIGHT, x, y);
+		// Simple gravity simulation
+		if (y < 368) {
+			y += 4; // fall down
+		}
 		vga.swapBuffer(); // call this after you finish drawing your frame to display it, it avoids screen tearing
 	}
 }
 
-void demo_bochs_32() {
-	EcranBochs vga(640, 400, VBE_MODE::_32);
-
-	vga.init();
-	
-	ui8_t offset = 0;
-	while(true) {
-		
-		for (int y = 0; y < vga.getHeight(); y++) {
-			for (int x = 0; x < vga.getWidth(); x++) {
-				vga.paint(x, y, 
-					(~x << y%3) + offset & y, 
-					~offset * (x & ~y), 
-					offset | (~y < 2 - x % 16));
-			}
-		}
-		++offset;
-	}
-}
 
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
 	Ecran ecran;
@@ -115,10 +89,4 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
 	// initialize pci bus to detect GPU address
 	checkBus(0);
 
-
-	// demo_vga();
-
-	demo_bochs_8();
-
-	// demo_bochs_32();
 }
