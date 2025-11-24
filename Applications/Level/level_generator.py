@@ -1,3 +1,4 @@
+from pathlib import Path
 from PIL import Image, ImageChops
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -8,16 +9,21 @@ import time
 # --- CONFIGURATION UTILISATEUR ---
 # ==========================================
 
-LEVEL_IMAGE_PATH = r"sprites\NES - Super Mario Bros. - Stages - World 1-1.png"
-TILESET_IMAGE_PATH = r"sprites\NES - Super Mario Bros. - Miscellaneous - Tileset.png"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-OUTPUT_FILENAME = r"Applications\Level\LevelCollision.h"
+LEVEL_IMAGE_PATH = BASE_DIR / "sprites" / "NES - Super Mario Bros. - Stages - World 1-1.png"
+TILESET_IMAGE_PATH = BASE_DIR / "sprites" / "NES - Super Mario Bros. - Miscellaneous - Tileset.png"
+
+OUTPUT_DIR = BASE_DIR / "Applications" / "Level"
+OUTPUT_FILENAME = OUTPUT_DIR / "LevelCollision.h"
+
 ARRAY_NAME = "collision_map"
 TILE_SIZE = 16 
 
 # --- MODE VERIFICATION ---
 # Mettre à True pour afficher seulement les assets découpés (pour vérifier les coordonnés)
 # Mettre à False pour lancer l'analyse complète du niveau
+
 CHECK_ASSETS_MODE = False
 
 # --- DEBUG SETTINGS ---
@@ -41,6 +47,7 @@ QUESTION_BOX = 3
 # Format : "Nom": { "x": pixel_x, "y": pixel_y, "type": ID_COLLISION }
 # Types : 1 = Solide, 2 = Pièce, 3 = Bloc ? (Mystère)
 # NOTE : Tu dois ouvrir ton image Tileset dans Paint/Gimp pour trouver les X,Y du coin haut-gauche de chaque sprite.
+
 ASSETS_CONFIG = {
     # --- OBJETS SPECIAUX (Prioritaires) ---
     "Coin":         {"x": 298, "y": 95,  "type": COIN}, # Pièce (Palette 3)
@@ -53,7 +60,6 @@ ASSETS_CONFIG = {
     "HardBlock":    {"x": 0,   "y": 33,  "type": NOT_PASSTHROUGH}, # Bloc fer (Escalier fin niveau)
     "Brick_underground_with_way": {"x": 164, "y": 16, "type": NOT_PASSTHROUGH}, # Brique Sous-sol (Palette 0)
     "Brick_underground_no_way": {"x": 181, "y": 16, "type": NOT_PASSTHROUGH}, # Brique Sous-sol (Palette 0)
-    
     
     # Tuyaux (Palette 0 - Pipes)
     "Head_Pipe_TL":      {"x": 119,   "y": 196, "type": NOT_PASSTHROUGH}, # Tuyau Haut-Gauche
@@ -68,23 +74,22 @@ ASSETS_CONFIG = {
     "coude_pipe_bl": {"x": 119, "y": 247, "type": NOT_PASSTHROUGH}, # Coude Tuyau Bas-Gauche
 
     "Underground_Head_Pipe_TL":      {"x": 283,   "y": 196, "type": NOT_PASSTHROUGH}, # Tuyau Haut-Gauche
-    "Underground_Head_Pipe_TR":      {"x": 300,  "y": 196, "type": NOT_PASSTHROUGH}, # Tuyau Haut-Droit
-    "Underground_Pipe_BL":      {"x": 283,   "y": 213, "type": NOT_PASSTHROUGH}, # Tuyau Bas-Gauche
-    "Underground_Pipe_BR":      {"x": 300,  "y": 213, "type": NOT_PASSTHROUGH}, # Tuyau Bas-Droit
-    "Underground_Head_horizontal_Pipe_TL": {"x": 249, "y": 230, "type": NOT_PASSTHROUGH}, # Tuyau Horizontal Haut-Gauche
-    "Underground_Head_horizontal_Pipe_BL": {"x": 249, "y": 247, "type": NOT_PASSTHROUGH}, # Tuyau Horizontal Bas-Gauche
-    "Underground_horizontal_Pipe_T": {"x": 266, "y": 230, "type": NOT_PASSTHROUGH}, # Tuyau Horizontal Haut
-    "Underground_horizontal_Pipe_B": {"x": 266, "y": 247, "type": NOT_PASSTHROUGH}, # Tuyau Horizontal Bas
-    "Underground_coude_pipe_tl": {"x": 283, "y": 230, "type": NOT_PASSTHROUGH}, # Coude Tuyau Haut-Gauche
-    "Underground_coude_pipe_bl": {"x": 283, "y": 247, "type": NOT_PASSTHROUGH}, # Coude Tuyau Bas-Gauche
+    "Underground_Head_Pipe_TR":      {"x": 300,  "y": 196, "type": NOT_PASSTHROUGH},  # Tuyau Haut-Droit
+    "Underground_Pipe_BL":           {"x": 283,   "y": 213, "type": NOT_PASSTHROUGH}, # Tuyau Bas-Gauche
+    "Underground_Pipe_BR":           {"x": 300,  "y": 213, "type": NOT_PASSTHROUGH},  # Tuyau Bas-Droit
+    "Underground_Head_horizontal_Pipe_TL": {"x": 249, "y": 230, "type": NOT_PASSTHROUGH},  # Tuyau Horizontal Haut-Gauche
+    "Underground_Head_horizontal_Pipe_BL": {"x": 249, "y": 247, "type": NOT_PASSTHROUGH},  # Tuyau Horizontal Bas-Gauche
+    "Underground_horizontal_Pipe_T": {"x": 266, "y": 230, "type": NOT_PASSTHROUGH},  # Tuyau Horizontal Haut
+    "Underground_horizontal_Pipe_B": {"x": 266, "y": 247, "type": NOT_PASSTHROUGH},  # Tuyau Horizontal Bas
+    "Underground_coude_pipe_tl": {"x": 283, "y": 230, "type": NOT_PASSTHROUGH},   # Coude Tuyau Haut-Gauche
+    "Underground_coude_pipe_bl": {"x": 283, "y": 247, "type": NOT_PASSTHROUGH},   # Coude Tuyau Bas-Gauche
 
-    # Colines
+    # Collines
     "Hill_1":       {"x": 0,  "y": 247,   "type": PASSTHROUGH}, 
-    "Hill_2":       {"x": 17,  "y": 247,   "type": PASSTHROUGH}, 
-    "Hill_3":       {"x": 34,  "y": 247,   "type": PASSTHROUGH},
-    "Hill_4":       {"x": 51,  "y": 247,   "type": PASSTHROUGH},
-    "Hill_5":       {"x": 68,  "y": 247,   "type": PASSTHROUGH},
-
+    "Hill_2":       {"x": 17, "y": 247,   "type": PASSTHROUGH},
+    "Hill_3":       {"x": 34, "y": 247,   "type": PASSTHROUGH},
+    "Hill_4":       {"x": 51, "y": 247,   "type": PASSTHROUGH},
+    "Hill_5":       {"x": 68, "y": 247,   "type": PASSTHROUGH},
 }
 
 # --- COULEURS DE FOND (Ignorées) ---
@@ -102,9 +107,11 @@ def get_sub_image(img, x, y, width, height):
 
 def compare_images(img1, img2):
     """Retourne la différence (RMS) entre deux images. 0 = Identique."""
-    if img1.size != img2.size: return 9999
+    if img1.size != img2.size:
+        return 9999
     diff = ImageChops.difference(img1, img2)
-    if not diff.getbbox(): return 0
+    if not diff.getbbox():
+        return 0
     h = diff.histogram()
     sq = (value * ((idx % 256) ** 2) for idx, value in enumerate(h))
     sum_of_squares = sum(sq)
@@ -133,7 +140,7 @@ def check_assets_integrity(tileset_img):
         ax.axis('off')
         
         # Petit contour rouge pour vérifier les bords
-        rect = patches.Rectangle((0,0), 15, 15, linewidth=1, edgecolor='red', facecolor='none')
+        rect = patches.Rectangle((0, 0), 15, 15, linewidth=1, edgecolor='red', facecolor='none')
         ax.add_patch(rect)
 
     # Cacher les cases vides
@@ -170,9 +177,12 @@ def show_debug_map(level_img, collision_data, tiles_w, tiles_h):
             val = collision_data[idx]
             
             color = None
-            if val == 1: color = 'red'
-            elif val == 2: color = 'yellow'
-            elif val == 3: color = 'magenta'
+            if val == 1:
+                color = 'red'
+            elif val == 2:
+                color = 'yellow'
+            elif val == 3:
+                color = 'magenta'
 
             if color:
                 ax.add_patch(patches.Rectangle(
@@ -191,6 +201,9 @@ def show_debug_map(level_img, collision_data, tiles_w, tiles_h):
 
 def main():
     try:
+        # S'assurer que le dossier de sortie existe (tous OS)
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
         # 1. Chargement des images
         print("Chargement des images...")
         tileset_img = Image.open(TILESET_IMAGE_PATH).convert('RGB')
@@ -203,7 +216,7 @@ def main():
 
         # 3. Préparation des templates en mémoire
         print("Extraction des templates depuis le tileset...")
-        templates = [] # Liste de tuples (Image, Type, Nom)
+        templates = []
         for name, data in ASSETS_CONFIG.items():
             img_asset = get_sub_image(tileset_img, data['x'], data['y'], TILE_SIZE, TILE_SIZE)
             templates.append({
@@ -226,18 +239,19 @@ def main():
                 current_tile = get_sub_image(level_img, x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 center_pixel = current_tile.getpixel((7, 7))
                 
-                final_type = 1 # Par défaut solide
+                final_type = 1  # Par défaut solide
                 
-                # A. Test Couleur de Fond (Optimisation)
+                # A. Test Couleur de Fond
                 is_bg = False
                 for bg in BACKGROUND_COLORS:
-                    if (abs(center_pixel[0]-bg[0])<=COLOR_TOLERANCE and 
-                        abs(center_pixel[1]-bg[1])<=COLOR_TOLERANCE and 
-                        abs(center_pixel[2]-bg[2])<=COLOR_TOLERANCE):
+                    if (abs(center_pixel[0]-bg[0]) <= COLOR_TOLERANCE and
+                        abs(center_pixel[1]-bg[1]) <= COLOR_TOLERANCE and
+                        abs(center_pixel[2]-bg[2]) <= COLOR_TOLERANCE):
                         is_bg = True
                         break
                 
-                if is_bg: final_type = 0
+                if is_bg:
+                    final_type = 0
 
                 # B. Pattern Matching (Assets)
                 # On teste chaque asset. L'ordre de priorité : 2 (Coin) > 3 (Quest) > 1 (Sol)
@@ -263,18 +277,21 @@ def main():
 
         print(f"Analyse terminée en {time.time() - t1:.2f} secondes.")
 
-        # 5. Export
+        # 5. Export (chemin portable)
         print(f"Génération de {OUTPUT_FILENAME}...")
-        with open(OUTPUT_FILENAME, "w") as f:
+        with OUTPUT_FILENAME.open("w", encoding="utf-8") as f:
             f.write(f"#ifndef LEVEL_COLLISION_H\n#define LEVEL_COLLISION_H\n\n")
             f.write(f"const int MAP_WIDTH = {tiles_w};\n")
             f.write(f"const int MAP_HEIGHT = {tiles_h};\n")
             f.write(f"const unsigned char {ARRAY_NAME}[] = {{\n")
             for i, val in enumerate(collision_data):
-                if i>0 and i%tiles_w==0: f.write("\n\t")
-                elif i==0: f.write("\t")
+                if i > 0 and i % tiles_w == 0:
+                    f.write("\n\t")
+                elif i == 0:
+                    f.write("\t")
                 f.write(str(val))
-                if i < len(collision_data)-1: f.write(", ")
+                if i < len(collision_data)-1:
+                    f.write(", ")
             f.write("\n};\n\n#endif")
 
         if SHOW_DEBUG:
