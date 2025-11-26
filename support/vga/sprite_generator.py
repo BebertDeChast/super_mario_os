@@ -105,7 +105,7 @@ def generate_indexed_sprite():
         for y in range(height):
             line_indices = []
             for x in range(width):
-                pixel = pixels[x, y] # (R, G, B)
+                pixel = pixels[x, y] 
                 index = get_nearest_color_index(pixel, atari_palette, color_cache)
                 line_indices.append(f"{index}")
             

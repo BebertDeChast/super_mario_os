@@ -25,6 +25,7 @@
 #include <Applications/MarioBros/Movement.h>
 
 #include <Applications/Level/Level.h>
+#include <Applications/Level/Level_display_data.h>
 
 extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;
@@ -34,7 +35,7 @@ extern size_t bootstrap_stack_size;	   // Taille de la pile d'exécution
 
 void mario_bros()
 {
-	EcranBochs display(640, 400, VBE_MODE::_8);
+	EcranBochs display(4000, 480, 720, VBE_MODE::_8);
 
 	Level level(&display);
 
@@ -43,20 +44,10 @@ void mario_bros()
 
 	// only usefull in 4 or 8 bits modes
 	display.set_palette(palette_vga);
-	display.plot_palette(0, 0, 25);
+	// display.plot_palette(0, 0, 25);
 
-	int x = 0;
-	int y = 200;
-	bool isRight = true;
-	while (true) {
-		display.clear(1);
-		update_mario_position(x, y, 640, 400, isRight);
-
-		level.afficheNiveau();
-		unsigned char* currentSprite = isRight ? sprite_data : sprite_data_reversed;
-		display.plot_sprite(currentSprite, SPRITE_WIDTH, SPRITE_HEIGHT, x, y);
-		display.swapBuffer(); // call this after you finish drawing your frame to display it, it avoids screen tearing
-	}
+	display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+	
 }
 
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)

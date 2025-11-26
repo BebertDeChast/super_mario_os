@@ -45,6 +45,7 @@ class EcranBochs {
     private:
         const ui16_t width;
         const ui16_t height;
+        const ui16_t virtualWidth;
         const VBE_MODE mode;
         bool topBuffer;
 
@@ -56,10 +57,12 @@ class EcranBochs {
         ui8_t bytesPerPixel();
 
     public:
-        EcranBochs(ui16_t width, ui16_t height, VBE_MODE mode);
+        EcranBochs(ui16_t width, ui16_t height, ui16_t virtualWidth, VBE_MODE mode);
 
         void init();
         void swapBuffer();
+
+        void set_offset(ui16_t x, ui16_t y);
 
         ui16_t getWidth();
         ui16_t getHeight();
@@ -67,13 +70,11 @@ class EcranBochs {
         void set_palette(ui8_t palette_vga[256][3]);
 
         void clear(ui8_t color);
-        void clear(ui8_t r, ui8_t g, ui8_t b);
 
         void paint(unsigned int x, unsigned int y, char color);
-        void paint(unsigned int x, unsigned int y, ui8_t r, ui8_t g, ui8_t b);
+        void paint_picture(const unsigned char *picture, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
 
         void plot_square(int x, int y, int size, ui8_t color);
-        void plot_square(int x, int y, int size, ui8_t r, ui8_t g, ui8_t b);
 
         void plot_palette(int x, int y, int size);
 
