@@ -13,7 +13,12 @@
 			"extensions": [
 				"ms-vscode.cpptools",
 				"ms-vscode.cmake-tools",
-				"webfreak.debug"
+				"webfreak.debug",
+				"oderwat.indent-rainbow",
+				"google.geminicodeassist",
+				"esbenp.prettier-vscode",
+				"ms-vscode.cpptools-extension-pack"
+				
 			],
 			"settings": {
 
