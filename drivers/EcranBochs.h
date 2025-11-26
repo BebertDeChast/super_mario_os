@@ -43,7 +43,7 @@ class EcranBochs {
         static ui8_t* VRAM;
     
     private:
-        const ui16_t width;
+        const ui16_t displayedWidth;
         const ui16_t height;
         const ui16_t virtualWidth;
         const VBE_MODE mode;

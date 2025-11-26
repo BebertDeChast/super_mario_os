@@ -35,7 +35,7 @@ extern size_t bootstrap_stack_size;	   // Taille de la pile d'exécution
 
 void mario_bros()
 {
-	EcranBochs display(4000, 480, 720, VBE_MODE::_8);
+	EcranBochs display(720, 480, 4000, VBE_MODE::_8);
 
 	Level level(&display);
 

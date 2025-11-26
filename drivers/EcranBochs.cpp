@@ -7,7 +7,7 @@
 
 ui8_t *EcranBochs::VRAM;
 
-EcranBochs::EcranBochs(ui16_t width, ui16_t height, ui16_t virtualWidth, VBE_MODE mode) : width(width), height(height), virtualWidth(virtualWidth), mode(mode), topBuffer(false), framebuffer(VRAM)
+EcranBochs::EcranBochs(ui16_t displayedWidth, ui16_t height, ui16_t virtualWidth, VBE_MODE mode) : displayedWidth(displayedWidth), height(height), virtualWidth(virtualWidth), mode(mode), topBuffer(false), framebuffer(VRAM)
 {
 }
 
@@ -26,7 +26,7 @@ void EcranBochs::init()
     ecrireRegistre(VBE_INDEX::ENABLE, VBE_DISPI_DISABLED);
 
     // set size & bit depth
-    ecrireRegistre(VBE_INDEX::XRES, width);
+    ecrireRegistre(VBE_INDEX::XRES, displayedWidth);
     ecrireRegistre(VBE_INDEX::YRES, height);
     ecrireRegistre(VBE_INDEX::BPP, mode);
 
@@ -49,7 +49,7 @@ void EcranBochs::swapBuffer()
     }
     else
     {
-        framebuffer = VRAM + width * height * bytesPerPixel();
+        framebuffer = VRAM + displayedWidth * height * bytesPerPixel();
     }
 
     topBuffer = !topBuffer;
@@ -59,7 +59,7 @@ void EcranBochs::clear(ui8_t color)
 {
     for (ui16_t y = 0; y < height; y++)
     {
-        for (ui16_t x = 0; x < width; x++)
+        for (ui16_t x = 0; x < displayedWidth; x++)
         {
             paint(x, y, color);
         }
@@ -68,7 +68,7 @@ void EcranBochs::clear(ui8_t color)
 
 ui16_t EcranBochs::getWidth()
 {
-    return width;
+    return displayedWidth;
 }
 
 ui16_t EcranBochs::getHeight()
@@ -91,7 +91,7 @@ void EcranBochs::paint(unsigned int x, unsigned int y, char color)
 {
     if (mode == VBE_MODE::_8)
     {
-        ui32_t offset = y * width + x;
+        ui32_t offset = y * displayedWidth + x;
         VRAM[offset] = color;
     }
 }
@@ -100,7 +100,7 @@ void EcranBochs::plot_square(int x, int y, int size, ui8_t color)
 {
     for (int row = 0; row < size; row++)
     {
-        ui32_t base = (y + row) * width + x;
+        ui32_t base = (y + row) * displayedWidth + x;
         for (int col = 0; col < size; col++)
         {
             framebuffer[base + col] = color;
@@ -167,7 +167,7 @@ void EcranBochs::paint_picture(const unsigned char *picture, unsigned int x, uns
 {
     for (unsigned int row = 0; row < h; row++)
     {
-        ui32_t base = (y + row) * width + x;
+        ui32_t base = (y + row) * displayedWidth + x;
         for (unsigned int col = 0; col < w; col++)
         {
             ui8_t color = picture[row * w + col];
