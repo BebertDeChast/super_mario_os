@@ -47,7 +47,18 @@ void mario_bros()
 	// display.plot_palette(0, 0, 25);
 
 	display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-	
+
+	int x = 0, y = 0;
+	int scrollX = 0, scrollY = 0;
+	bool isRight = true;
+
+	while (true)
+	{
+		display.set_offset(scrollX, scrollY);
+		update_mario_position(x, y, scrollX, scrollY, 720, 480, isRight);
+		display.plot_sprite(isRight ? sprite_data : sprite_data_reversed, SPRITE_WIDTH, SPRITE_HEIGHT, x, y);
+		display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+	}
 }
 
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
