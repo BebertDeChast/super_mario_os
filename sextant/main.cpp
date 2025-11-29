@@ -47,6 +47,14 @@ void mario_bros()
 	// display.plot_palette(0, 0, 25);
 
 	display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+
+	// int x = 0; test de défilement
+	// while (1)
+	// {
+	// 	display.set_offset(x, 0);
+	// 	x = (x + 1) % (LEVEL_WIDTH);
+	// }
+	
 	
 }
 
