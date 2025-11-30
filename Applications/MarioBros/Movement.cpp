@@ -9,8 +9,9 @@ namespace {
 	const int jumpImpulse = -20;
 }
 
-void update_mario_position(int& x, int& y, int screenWidth, int screenHeight, bool& isRight) {
+void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int screenWidth, int screenHeight, bool& isRight) {
 	int groundY = screenHeight - SPRITE_HEIGHT;		// Ground level
+	int middleScreenX = scrollX + (screenWidth / 2 - SPRITE_WIDTH);
 
 	// Movement
 	if (keyboard.testChar()) {
@@ -20,16 +21,17 @@ void update_mario_position(int& x, int& y, int screenWidth, int screenHeight, bo
 			isRight = false;
 		} else if (key == 'd' || key == 'D') {
 			x += 10;
+			if (x > middleScreenX) {
+				scrollX += 10;
+			}
 			isRight = true;
 		} else if ((key == 'z' || key == 'Z') && y >= groundY) {
 			verticalVelocity = jumpImpulse;
 		}
 	}
 
-	// Prevent Mario from going more than the middle of the screen
-	int maxX = screenWidth / 2 - SPRITE_WIDTH;
-	if (x < 0) x = 0;
-	if (x > maxX) x = maxX;
+	// Prevent Mario from going out of the level
+	if (x < scrollX) x = scrollX;
 
 	// Vertical physics (jump + gravity)
 	y += verticalVelocity;

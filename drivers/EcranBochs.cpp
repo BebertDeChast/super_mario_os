@@ -93,7 +93,7 @@ void EcranBochs::paint(unsigned int x, unsigned int y, char color)
 {
     if (mode == VBE_MODE::_8)
     {
-        ui32_t offset = y * displayedWidth + x;
+        ui32_t offset = y * virtualWidth + x;
         VRAM[offset] = color;
     }
 }
@@ -102,7 +102,7 @@ void EcranBochs::plot_square(int x, int y, int size, ui8_t color)
 {
     for (int row = 0; row < size; row++)
     {
-        ui32_t base = (y + row) * displayedWidth + x;
+        ui32_t base = (y + row) * virtualWidth + x;
         for (int col = 0; col < size; col++)
         {
             framebuffer[base + col] = color;
@@ -124,15 +124,15 @@ void EcranBochs::plot_palette(int x, int y, int size)
 
 void EcranBochs::plot_sprite(void *buffer, ui16_t width, ui16_t height, ui16_t x, ui16_t y)
 {
-
     ui8_t *buf = (ui8_t *)buffer;
     for (ui16_t row = 0; row < height; row++)
     {
-        ui32_t base = (y + row) * getWidth() + x;
+        ui32_t base = (y + row) * virtualWidth + x; 
+        
         for (ui16_t col = 0; col < width; col++)
         {
             ui8_t color = *buf++;
-            if (color != 0)
+            if (color != 0) // Transparence
             {
                 framebuffer[base + col] = color;
             }
