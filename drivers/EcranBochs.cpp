@@ -30,13 +30,15 @@ void EcranBochs::init()
     ecrireRegistre(VBE_INDEX::YRES, height);
     ecrireRegistre(VBE_INDEX::BPP, mode);
 
+    // enable screen
+    ecrireRegistre(VBE_INDEX::ENABLE, VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
+
     // set virtual width for double buffering
     ecrireRegistre(VBE_INDEX::VIRT_WIDTH, virtualWidth);
     ecrireRegistre(VBE_INDEX::X_OFFSET, 0);
     ecrireRegistre(VBE_INDEX::Y_OFFSET, 0);
 
-    // enable screen
-    ecrireRegistre(VBE_INDEX::ENABLE, VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
+    
 }
 
 void EcranBochs::swapBuffer()
@@ -167,7 +169,7 @@ void EcranBochs::paint_picture(const unsigned char *picture, unsigned int x, uns
 {
     for (unsigned int row = 0; row < h; row++)
     {
-        ui32_t base = (y + row) * displayedWidth + x;
+        ui32_t base = (y + row) * virtualWidth + x;
         for (unsigned int col = 0; col < w; col++)
         {
             ui8_t color = picture[row * w + col];
