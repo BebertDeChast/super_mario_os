@@ -30,13 +30,15 @@ void EcranBochs::init()
     ecrireRegistre(VBE_INDEX::YRES, height);
     ecrireRegistre(VBE_INDEX::BPP, mode);
 
+    // enable screen
+    ecrireRegistre(VBE_INDEX::ENABLE, VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
+
     // set virtual width for double buffering
     ecrireRegistre(VBE_INDEX::VIRT_WIDTH, virtualWidth);
     ecrireRegistre(VBE_INDEX::X_OFFSET, 0);
     ecrireRegistre(VBE_INDEX::Y_OFFSET, 0);
 
-    // enable screen
-    ecrireRegistre(VBE_INDEX::ENABLE, VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
+    
 }
 
 void EcranBochs::swapBuffer()
@@ -91,7 +93,7 @@ void EcranBochs::paint(unsigned int x, unsigned int y, char color)
 {
     if (mode == VBE_MODE::_8)
     {
-        ui32_t offset = y * displayedWidth + x;
+        ui32_t offset = y * virtualWidth + x;
         VRAM[offset] = color;
     }
 }
@@ -100,7 +102,7 @@ void EcranBochs::plot_square(int x, int y, int size, ui8_t color)
 {
     for (int row = 0; row < size; row++)
     {
-        ui32_t base = (y + row) * displayedWidth + x;
+        ui32_t base = (y + row) * virtualWidth + x;
         for (int col = 0; col < size; col++)
         {
             framebuffer[base + col] = color;
@@ -122,15 +124,15 @@ void EcranBochs::plot_palette(int x, int y, int size)
 
 void EcranBochs::plot_sprite(void *buffer, ui16_t width, ui16_t height, ui16_t x, ui16_t y)
 {
-
     ui8_t *buf = (ui8_t *)buffer;
     for (ui16_t row = 0; row < height; row++)
     {
-        ui32_t base = (y + row) * getWidth() + x;
+        ui32_t base = (y + row) * virtualWidth + x; 
+        
         for (ui16_t col = 0; col < width; col++)
         {
             ui8_t color = *buf++;
-            if (color != 0)
+            if (color != 0) // Transparence
             {
                 framebuffer[base + col] = color;
             }
@@ -167,7 +169,7 @@ void EcranBochs::paint_picture(const unsigned char *picture, unsigned int x, uns
 {
     for (unsigned int row = 0; row < h; row++)
     {
-        ui32_t base = (y + row) * displayedWidth + x;
+        ui32_t base = (y + row) * virtualWidth + x;
         for (unsigned int col = 0; col < w; col++)
         {
             ui8_t color = picture[row * w + col];
