@@ -56,6 +56,20 @@ void mario_bros()
 	// }
 	
 	
+	int x = 0;
+	Clavier clavier;
+	while (1)
+	{
+		if (clavier.testChar()) {
+			char c = clavier.getchar();
+			if (c == 'd') {
+				int limit = LEVEL_WIDTH - display.getWidth();
+				if (x < limit)
+					x = (x + 16 > limit) ? limit : x + 16;
+			}
+			display.set_offset(x, 0);
+		}
+	}
 }
 
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
