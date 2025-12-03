@@ -50,7 +50,7 @@ void plotXYnewXnewY(PortSerie ps, int X, int Y, int newX, int newY)
 void mario_bros()
 {
     // Ecran 720x240, mode 8 bits (256 couleurs)
-    EcranBochs display(720, 240, 4000, VBE_MODE::_8);
+    EcranBochs display(720, 240, LEVEL_WIDTH, VBE_MODE::_8);
     Level level(&display);
     PortSerie ps;
 
@@ -74,12 +74,8 @@ void mario_bros()
 
     while (true)
     {
-        // 2. Mise à jour de la physique et des collisions
-        // On passe les dimensions de l'écran (720x240)
         update_mario_position(marioX, marioY, scrollX, scrollY, display.getWidth(), display.getHeight(), isRight);
 
-        // 3. Affichage de Mario
-        // display.plot_sprite(isRight ? marioSpriteData : marioSpriteDataReversed, MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT, marioX, marioY);
         // if (marioX != marioOldX || marioY != marioOldY)
         //     plotXYnewXnewY(ps, marioOldX, marioOldY, marioX, marioY);
         display.plot_moving_sprite(isRight ? marioSpriteData : marioSpriteDataReversed,
@@ -89,6 +85,7 @@ void mario_bros()
                                    level_sprite_indices);
         marioOldX = marioX;
         marioOldY = marioY;
+        
         // 4. Mise à jour de la caméra
         display.set_offset(scrollX, 0);
     }

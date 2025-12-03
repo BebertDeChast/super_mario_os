@@ -148,28 +148,9 @@ void EcranBochs::plot_sprite(void *pict, ui16_t width, ui16_t height, ui16_t x, 
 */
 void EcranBochs::plot_moving_sprite(void *pict, ui16_t width, ui16_t height, ui16_t newX, ui16_t newY, ui16_t oldX, ui16_t oldY, const unsigned char *background)
 {
-    // oldY oldX est la position dans la VRAM où on doit restaurer le background
-
-    PortSerie ps;
-    for (unsigned int row = oldY; row < oldY + height; row++)
+    for (unsigned int row = 0; row < height; row++)
     {
-        // on affiche toutes les variables pour debug
-        // ps.ecrireMot("Row: ");
-        // ps.afficherBase(row, 10);
-        // ps.ecrireMot(" OldY: ");
-        // ps.afficherBase(oldY, 10);
-        // ps.ecrireMot(" Height: ");
-        // ps.afficherBase(height, 10);
-        // ps.ecrireMot(" virtualWidth: ");
-        // ps.afficherBase(virtualWidth, 10);
-        // ps.ecrireMot("\n");
-
-        ui32_t base = row * virtualWidth + oldX; // point d'entrée dans la VRAM (en haut à gauche du sprite à effacer)
-        // ps.ecrireMot("Base: ");
-        // ps.afficherBase(base, 10);
-        // ps.ecrireMot("\n");
-        // while (1)
-        //     ;
+        ui32_t base = (row + oldY) * virtualWidth + oldX;
         for (unsigned int col = 0; col < width; col++)
         {
             ui8_t color = background[base + col];
