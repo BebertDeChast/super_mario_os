@@ -34,6 +34,24 @@ int i;
 extern vaddr_t bootstrap_stack_bottom; // Adresse de début de la pile d'exécution
 extern size_t bootstrap_stack_size;    // Taille de la pile d'exécution
 
+struct GameState {
+    int marioX;
+    int marioY;
+    int scrollX;
+    int scrollY;
+
+    // État du joueur
+    bool isRight;
+
+    // Commandes du clavier
+    bool wantLeft;
+    bool wantRight;
+    bool wantJump;
+
+    Spinlock lock; 
+};
+
+
 void plotXYnewXnewY(PortSerie ps, int X, int Y, int newX, int newY)
 {
     ps.ecrireMot("X =");
