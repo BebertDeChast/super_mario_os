@@ -4,6 +4,7 @@
 #include <hal/pci.h>
 #include <sextant/types.h>
 #include <drivers/Ecran.h>
+#include <drivers/PortSerie.h>
 
 ui8_t *EcranBochs::VRAM;
 
@@ -35,10 +36,11 @@ void EcranBochs::init()
 
     // set virtual width for double buffering
     ecrireRegistre(VBE_INDEX::VIRT_WIDTH, virtualWidth);
+    ecrireRegistre(VBE_INDEX::VIRT_HEIGHT, height * 2);
+
+    // set offset to (0,0)
     ecrireRegistre(VBE_INDEX::X_OFFSET, 0);
     ecrireRegistre(VBE_INDEX::Y_OFFSET, 0);
-
-    
 }
 
 void EcranBochs::swapBuffer()
@@ -122,22 +124,40 @@ void EcranBochs::plot_palette(int x, int y, int size)
     }
 }
 
-void EcranBochs::plot_sprite(void *buffer, ui16_t width, ui16_t height, ui16_t x, ui16_t y)
+void EcranBochs::plot_sprite(void *pict, ui16_t width, ui16_t height, ui16_t x, ui16_t y)
 {
-    ui8_t *buf = (ui8_t *)buffer;
+    ui8_t *pict_ptr = (ui8_t *)pict; // Cast to byte pointer
     for (ui16_t row = 0; row < height; row++)
     {
-        ui32_t base = (y + row) * virtualWidth + x; 
-        
+        ui32_t base = (y + row) * virtualWidth + x;
+
         for (ui16_t col = 0; col < width; col++)
         {
-            ui8_t color = *buf++;
+            ui8_t color = *pict_ptr++;
             if (color != 0) // Transparence
             {
                 framebuffer[base + col] = color;
             }
         }
     }
+}
+
+/*  Plots a moving sprite by erasing its old position and drawing it at the new position.
+    Assumes a transparent color of 0.
+    Redraw the background where the sprite was previously located before drawing it at the new position.
+*/
+void EcranBochs::plot_moving_sprite(void *pict, ui16_t width, ui16_t height, ui16_t newX, ui16_t newY, ui16_t oldX, ui16_t oldY, const unsigned char *background)
+{
+    for (unsigned int row = 0; row < height; row++)
+    {
+        ui32_t base = (row + oldY) * virtualWidth + oldX;
+        for (unsigned int col = 0; col < width; col++)
+        {
+            ui8_t color = background[base + col];
+            framebuffer[base + col] = color;
+        }
+    }
+    plot_sprite(pict, width, height, newX, newY);
 }
 
 ui16_t EcranBochs::lireRegistre(VBE_INDEX id)

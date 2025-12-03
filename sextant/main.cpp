@@ -34,11 +34,25 @@ int i;
 extern vaddr_t bootstrap_stack_bottom; // Adresse de début de la pile d'exécution
 extern size_t bootstrap_stack_size;    // Taille de la pile d'exécution
 
+void plotXYnewXnewY(PortSerie ps, int X, int Y, int newX, int newY)
+{
+    ps.ecrireMot("X =");
+    ps.afficherBase(X, 10);
+    ps.ecrireMot(" Y =");
+    ps.afficherBase(Y, 10);
+    ps.ecrireMot(" -> NewX =");
+    ps.afficherBase(newX, 10);
+    ps.ecrireMot(" NewY =");
+    ps.afficherBase(newY, 10);
+    ps.ecrireMot("\n");
+}
+
 void mario_bros()
 {
     // Ecran 720x240, mode 8 bits (256 couleurs)
-    EcranBochs display(720, 240, 4000, VBE_MODE::_8);
+    EcranBochs display(720, 240, LEVEL_WIDTH, VBE_MODE::_8);
     Level level(&display);
+    PortSerie ps;
 
     display.init();
     display.clear(0);
@@ -47,26 +61,35 @@ void mario_bros()
     // Position initiale
     int marioX = 32;
     int marioY = 100;
+    int marioOldX = marioX;
+    int marioOldY = marioY;
     int scrollX = 0;
     int scrollY = 0; // Ajouté car requis par la fonction update
     bool isRight = true;
 
+    display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+    ps.ecrireMot("Mario Bros started\n");
+    // Affichage initial de Mario
+    // plotXYnewXnewY(ps, marioX, marioY, marioX, marioY);
+
     while (true)
     {
-        // 1. Dessin du fond (optimisation possible: ne redessiner que si scrollX change)
-        // Attention: LEVEL_WIDTH doit être défini (probablement dans Level_display_data.h)
-        display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-
-        // 2. Mise à jour de la physique et des collisions
-        // On passe les dimensions de l'écran (720x240)
         update_mario_position(marioX, marioY, scrollX, scrollY, display.getWidth(), display.getHeight(), isRight);
 
-        // 3. Affichage de Mario
-        display.plot_sprite(isRight ? sprite_data : sprite_data_reversed, SPRITE_WIDTH, SPRITE_HEIGHT, marioX, marioY);
+        if (marioX != marioOldX || marioY != marioOldY)
+        {
+            plotXYnewXnewY(ps, marioOldX, marioOldY, marioX, marioY);
+            display.plot_moving_sprite(isRight ? marioSpriteData : marioSpriteDataReversed,
+                                       MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
+                                       marioX, marioY,
+                                       marioOldX, marioOldY,
+                                       level_sprite_indices);
+        }
+        marioOldX = marioX;
+        marioOldY = marioY;
 
         // 4. Mise à jour de la caméra
         display.set_offset(scrollX, 0);
-
     }
 }
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)

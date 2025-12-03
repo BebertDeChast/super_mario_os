@@ -31,8 +31,8 @@ namespace {
     }
 
     bool check_collision(int x, int y) {
-        int w = SPRITE_WIDTH;
-        int h = SPRITE_HEIGHT;
+        int w = MARIO_SPRITE_WIDTH;
+        int h = MARIO_SPRITE_HEIGHT;
         
         // Coins
         if (is_solid(x, y)) return true;
@@ -53,7 +53,7 @@ namespace {
 }
 
 void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int screenWidth, int screenHeight, bool& isRight) {
-    int middleScreenX = scrollX + (screenWidth / 2 - SPRITE_WIDTH);
+    int middleScreenX = scrollX + (screenWidth / 2 - MARIO_SPRITE_WIDTH);
     
     // 1. INPUTS
     bool wantLeft = false;
@@ -107,7 +107,7 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
 
     // Mise à jour Caméra
     if (x > middleScreenX) {
-        scrollX = x - (screenWidth / 2 - SPRITE_WIDTH);
+        scrollX = x - (screenWidth / 2 - MARIO_SPRITE_WIDTH);
     }
 
     // 3. PHYSIQUE VERTICALE
@@ -129,8 +129,8 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
     if (verticalVelocity > 0) { // Chute
         if (check_collision(x, nextY)) {
             // Sol
-            int blockBottomY = ((nextY + SPRITE_HEIGHT - 1) / TILE_SIZE) * TILE_SIZE;
-            y = blockBottomY - SPRITE_HEIGHT;
+            int blockBottomY = ((nextY + MARIO_SPRITE_HEIGHT - 1) / TILE_SIZE) * TILE_SIZE;
+            y = blockBottomY - MARIO_SPRITE_HEIGHT;
             verticalVelocity = 0;
         } else {
             y = nextY;
