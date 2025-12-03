@@ -32,13 +32,7 @@ extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;
 
 extern vaddr_t bootstrap_stack_bottom; // Adresse de début de la pile d'exécution
-extern size_t bootstrap_stack_size;	   // Taille de la pile d'exécution
-
-void wait_vsync() {
-    while (lireOctet(0x3DA) & 8);
-    
-    while (!(lireOctet(0x3DA) & 8));
-}
+extern size_t bootstrap_stack_size;    // Taille de la pile d'exécution
 
 void mario_bros()
 {
@@ -50,15 +44,12 @@ void mario_bros()
     display.clear(0);
     display.set_palette(palette_vga);
 
-    wait_vsync();
-
     // Position initiale
-    int marioX = 32;       
-    int marioY = 100;     
+    int marioX = 32;
+    int marioY = 100;
     int scrollX = 0;
-    int scrollY = 0;       // Ajouté car requis par la fonction update
+    int scrollY = 0; // Ajouté car requis par la fonction update
     bool isRight = true;
-    
 
     while (true)
     {
@@ -72,44 +63,42 @@ void mario_bros()
 
         // 3. Affichage de Mario
         display.plot_sprite(isRight ? sprite_data : sprite_data_reversed, SPRITE_WIDTH, SPRITE_HEIGHT, marioX, marioY);
-        
+
         // 4. Mise à jour de la caméra
         display.set_offset(scrollX, 0);
-        
-        // Petite pause pour ne pas tourner trop vite (si nécessaire)
-         wait_vsync();
+
     }
 }
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
 {
-	Ecran ecran;
-	Timer timer;
+    Ecran ecran;
+    Timer timer;
 
-	idt_setup();
-	irq_setup();
-	// Initialisation de la frequence de l'horloge
+    idt_setup();
+    irq_setup();
+    // Initialisation de la frequence de l'horloge
 
-	timer.i8254_set_frequency(1000);
-	irq_set_routine(IRQ_TIMER, ticTac);
+    timer.i8254_set_frequency(1000);
+    irq_set_routine(IRQ_TIMER, ticTac);
 
-	asm volatile("sti\n"); // Autorise les interruptions
+    asm volatile("sti\n"); // Autorise les interruptions
 
-	irq_set_routine(IRQ_KEYBOARD, handler_clavier);
+    irq_set_routine(IRQ_KEYBOARD, handler_clavier);
 
-	multiboot_info_t *mbi;
-	mbi = (multiboot_info_t *)addr;
+    multiboot_info_t *mbi;
+    mbi = (multiboot_info_t *)addr;
 
-	mem_setup(&__e_kernel, (mbi->mem_upper << 10) + (1 << 20), &ecran);
+    mem_setup(&__e_kernel, (mbi->mem_upper << 10) + (1 << 20), &ecran);
 
-	ecran.effacerEcran(NOIR);
+    ecran.effacerEcran(NOIR);
 
-	thread_subsystem_setup(bootstrap_stack_bottom, bootstrap_stack_size);
-	sched_subsystem_setup();
+    thread_subsystem_setup(bootstrap_stack_bottom, bootstrap_stack_size);
+    sched_subsystem_setup();
 
-	irq_set_routine(IRQ_TIMER, sched_clk);
+    irq_set_routine(IRQ_TIMER, sched_clk);
 
-	// initialize pci bus to detect GPU address
-	checkBus(0);
+    // initialize pci bus to detect GPU address
+    checkBus(0);
 
-	mario_bros();
+    mario_bros();
 }
