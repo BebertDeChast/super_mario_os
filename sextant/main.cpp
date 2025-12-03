@@ -76,16 +76,18 @@ void mario_bros()
     {
         update_mario_position(marioX, marioY, scrollX, scrollY, display.getWidth(), display.getHeight(), isRight);
 
-        // if (marioX != marioOldX || marioY != marioOldY)
-        //     plotXYnewXnewY(ps, marioOldX, marioOldY, marioX, marioY);
-        display.plot_moving_sprite(isRight ? marioSpriteData : marioSpriteDataReversed,
-                                   MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
-                                   marioX, marioY,
-                                   marioOldX, marioOldY,
-                                   level_sprite_indices);
+        if (marioX != marioOldX || marioY != marioOldY)
+        {
+            plotXYnewXnewY(ps, marioOldX, marioOldY, marioX, marioY);
+            display.plot_moving_sprite(isRight ? marioSpriteData : marioSpriteDataReversed,
+                                       MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
+                                       marioX, marioY,
+                                       marioOldX, marioOldY,
+                                       level_sprite_indices);
+        }
         marioOldX = marioX;
         marioOldY = marioY;
-        
+
         // 4. Mise à jour de la caméra
         display.set_offset(scrollX, 0);
     }
