@@ -286,7 +286,7 @@ void Ecran::afficherBase(unsigned int entier,int base,Couleur prPlan) {
 		afficherMot("0", prPlan);
 	}
 	else {
-		while (entier > base) {
+		while (entier >= base) {
 			*cur = int2char(entier % base, base);
 			entier /= base;
 

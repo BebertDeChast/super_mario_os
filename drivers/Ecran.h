@@ -4,16 +4,16 @@
 /**
  * @file Ecran.h
  * @class Ecran
- * @brief Affichage à l'écran en couleur. Le caractère '\\n' est pris en charge. Si l'écran est plein, un défilement
- * vers le bas est provoqué lors de la crétion d'une nouvelle ligne.
+ * @brief Affichage ï¿½ l'ï¿½cran en couleur. Le caractï¿½re '\\n' est pris en charge. Si l'ï¿½cran est plein, un dï¿½filement
+ * vers le bas est provoquï¿½ lors de la crï¿½tion d'une nouvelle ligne.
  */
 
 #define CRT_REG_INDEX 0x3d4
 #define CRT_REG_DATA  0x3d5
 #define VIDEO   	0xb8000
-#define LIGNES 		25 // 25 lignes maximun pour un écran
-#define COLONNES	80 // 80 colonnes maximun pour un écran
-#define CURSEUR		'>' // caractère pour le curseur
+#define LIGNES 		25 // 25 lignes maximun pour un ï¿½cran
+#define COLONNES	80 // 80 colonnes maximun pour un ï¿½cran
+#define CURSEUR		'>' // caractï¿½re pour le curseur
 #define CLIGN_OUI		1 // Clignotement
 #define CLIGN_NON		0 // Clignotement
 
@@ -22,13 +22,13 @@
 
 /**
  * @struct caseEcran
- * @brief Une case mémoire de la mémoire vidÃ©o en mode texte.
+ * @brief Une case mï¿½moire de la mï¿½moire vidÃ©o en mode texte.
  */
 struct caseEcran {
 	unsigned char caractere;
 	unsigned char couleurs;
 } __attribute__ ((packed));
-//__attribute__ ((packed)) : compile la structure en mémoire telle qu'elle est définie.
+//__attribute__ ((packed)) : compile la structure en mï¿½moire telle qu'elle est dï¿½finie.
 
 
 /**
@@ -36,7 +36,7 @@ struct caseEcran {
  */
 class Ecran {
 	/**
-	 * Couleur de l'arrière-plan.
+	 * Couleur de l'arriï¿½re-plan.
 	 */
 	Couleur arrierePlan;
 	/**
@@ -48,11 +48,11 @@ class Ecran {
 	 */
 	int colonne;
 	/**
-	 * Adresse de la première case de la mémoire vidéo.
+	 * Adresse de la premiï¿½re case de la mï¿½moire vidï¿½o.
 	 *
-	 * volatile : signifie que l'écriture et la lecture se font toujours
-	 * en mémoire (certaines optimisations du compilateur permettent
-	 * d'éviter la lecture ou l'écriture en mémoire en plaçant
+	 * volatile : signifie que l'ï¿½criture et la lecture se font toujours
+	 * en mï¿½moire (certaines optimisations du compilateur permettent
+	 * d'ï¿½viter la lecture ou l'ï¿½criture en mï¿½moire en plaï¿½ant
 	 * des variables dans des registres).
 	 */
 	static volatile caseEcran* origine;
@@ -71,7 +71,7 @@ class Ecran {
 	void avancerPositionCourrante();
 
 	/***
-	 * Modifie la position courante de la sortie sur l'écran
+	 * Modifie la position courante de la sortie sur l'ï¿½cran
 	 ***/
 	void modifierPosition(int,int);
 	/*
@@ -87,14 +87,14 @@ class Ecran {
 	unsigned char coderAttribut(Couleur , Couleur ,int);
 
 	/**
-	 * Affiche le curseur à  la position ('ligne','colonne').
+	 * Affiche le curseur ï¿½ la position ('ligne','colonne').
 	 */
 	void afficherCurseur();
 	/**
-	 * Gère le défilement.
-	 * Lorsque le curseur sort de l'écran, le texte est décalé d'une ligne vers le haut,
-	 * libérant la dernière ligne.
-	 * Le curseur se positionne en bas à  gauche.
+	 * Gï¿½re le dï¿½filement.
+	 * Lorsque le curseur sort de l'ï¿½cran, le texte est dï¿½calï¿½ d'une ligne vers le haut,
+	 * libï¿½rant la derniï¿½re ligne.
+	 * Le curseur se positionne en bas ï¿½ gauche.
 	 */
 	void defilement(int nline);
 public :
@@ -103,36 +103,36 @@ public :
 
 
 	/**
-	 * Efface l'écran en le coloriant avec la couleur indiquée.
+	 * Efface l'ï¿½cran en le coloriant avec la couleur indiquï¿½e.
 	 */
 	void effacerEcran(Couleur arrierePlan);
 
 	/**
-	 * Ecrit un caractère sur l'écran (caractère) à  la position donnée (l,c)
-	 * avec la couleur (prPlan) et l'attribut donné (arPlan).
+	 * Ecrit un caractï¿½re sur l'ï¿½cran (caractï¿½re) ï¿½ la position donnï¿½e (l,c)
+	 * avec la couleur (prPlan) et l'attribut donnï¿½ (arPlan).
 	 */
 	void afficherCaractereSeul(int l,int c,Couleur prPlan,Couleur arPlan,const char caractere);
 
 	void afficherCaractere(Couleur prPlan,Couleur arPlan,const char caractere);
 
 	/**
-	 * Ecrit sur l'écran le caractère à  la position donnée  avec l'attribut donné.
-	 * Ne gère ni le caractère de passage à la ligne ('\n')
-	 * ni le défilement.
+	 * Ecrit sur l'ï¿½cran le caractï¿½re ï¿½ la position donnï¿½e  avec l'attribut donnï¿½.
+	 * Ne gï¿½re ni le caractï¿½re de passage ï¿½ la ligne ('\n')
+	 * ni le dï¿½filement.
 	 * Corrige les erreurs de position.
 	 */
 	void afficherCaractere(int ligne, int colonne,Couleur premierPlan, Couleur arrierePlan,const char caractere);
 
 	/**
-	 * Affiche la chaîne de  caractères sur l'écran à  la position courante
-	 * avec la couleur donnée.
+	 * Affiche la chaï¿½ne de  caractï¿½res sur l'ï¿½cran ï¿½ la position courante
+	 * avec la couleur donnï¿½e.
 	 */
 	void afficherMot(const char *mot,Couleur premierPlan=BLANC);
 	void afficherMot(int l,int c,const char *mot,Couleur premierPlan=BLANC);
 
 	/**
-	 * Affiche un entier à  la position courante de couleur prPlan (blanc par defaut)
-	 * Dans la base choisie (maximum 16). Par défaut, l'entier est affiché dans la base décimale en blanc.
+	 * Affiche un entier ï¿½ la position courante de couleur prPlan (blanc par defaut)
+	 * Dans la base choisie (maximum 16). Par dï¿½faut, l'entier est affichï¿½ dans la base dï¿½cimale en blanc.
 	 */
 	void afficherBase(unsigned int entier,int base=10,Couleur prPlan=BLANC);
 
@@ -140,4 +140,6 @@ public :
 	void afficherChiffre(int l,int c, const int valeur);
 
 };
+
+char int2char(unsigned int n, int base);
 #endif

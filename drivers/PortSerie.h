@@ -1,7 +1,7 @@
 /*
  * PortSerie.h
  *
- *  Created on: 4 août 2008
+ *  Created on: 4 aoï¿½t 2008
  *      Author: jmenaud
  */
 
@@ -15,6 +15,8 @@ public :
 
 
 	void ecrireMot(const char*);
+	void afficherBase(unsigned int entier, int base);
+	void afficherCaractere(char c);
 
 
 };

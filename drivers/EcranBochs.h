@@ -78,5 +78,7 @@ class EcranBochs {
 
         void plot_palette(int x, int y, int size);
 
-        void plot_sprite(void* buffer, ui16_t width, ui16_t height, ui16_t x, ui16_t y);
+        void plot_sprite(void* pict, ui16_t width, ui16_t height, ui16_t x, ui16_t y);
+    
+        void plot_moving_sprite(void* pict, ui16_t width, ui16_t height, ui16_t newX, ui16_t newY, ui16_t oldX, ui16_t oldY, const unsigned char* background);
 };
