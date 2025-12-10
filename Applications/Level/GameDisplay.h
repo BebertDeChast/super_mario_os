@@ -1,4 +1,4 @@
-#define LEVEL_H
+#define GAMEDISPLAY_H
 
 #include <drivers/EcranBochs.h>
 #include <drivers/Clavier.h>
@@ -10,15 +10,15 @@
  * @class LevelDisplay
  * @brief Affiche le niveau actuel du jeu.
  */
-class Level
+class GameDisplay
 {
-    EcranBochs *e;
+    GameData *g;
 
 public:
     /**
      * @brief Constructeur de Level.
      * @param e écran pour l'affichage
      */
-    Level(EcranBochs *e);
-    void afficheNiveau();
+    GameDisplay(GameData *data);
+    void run();
 };
