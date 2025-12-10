@@ -30,102 +30,16 @@
 #include <Applications/Level/Level_display_data.h>
 #include <hal/fonctionsES.h>
 
+#include <Applications/Keyboard/Keyboard.h>
+#include <Applications/MarioBros/Logic.h>
+
 extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;
 
 extern vaddr_t bootstrap_stack_bottom; // Adresse de début de la pile d'exécution
 extern size_t bootstrap_stack_size;    // Taille de la pile d'exécution
 
-struct SharedData {
-    struct {
-        Spinlock spin;
-        int val = 0;
-        void lock() { spin.Take(&val); }
-        void unlock() { spin.Release(&val); }
-    } lock;
-    
-    // Inputs (Written by Keyboard, Read/Reset by Logic)
-    bool wantLeft = false;
-    bool wantRight = false;
-    bool wantJump = false;
-
-    // Game State (Written by Logic, Read by Display)
-    int marioX = 32;
-    int marioY = 100;
-    int scrollX = 0;
-    int scrollY = 0;
-    bool isRight = true;
-};
-
 Semaphore render_next_frame;
-
-// Thread Keyboard : gère les entrées claviers et renvoie au thread Logic les touches appuyées
-class KeyboardThread : public Threads {
-    SharedData* data;
-    Clavier keyboard;
-public:
-    KeyboardThread(SharedData* d) : data(d) {}
-    void run() override {
-        while(true) {
-            bool left = false, right = false, jump = false;
-            // Read all pending characters
-            if (keyboard.is_pressed(AZERTY::K_Q)) left = true;
-            if (keyboard.is_pressed(AZERTY::K_D)) right = true;
-            if (keyboard.is_pressed(AZERTY::K_Z)) jump = true;
-            
-            if (left || right || jump) {
-                data->lock.lock();
-                if (left) data->wantLeft = true;
-                if (right) data->wantRight = true;
-                if (jump) data->wantJump = true;
-                data->lock.unlock();
-            }
-            
-            thread_yield();
-        }
-    }
-};
-
-// Thread Logic : gère la logique.
-class LogicThread : public Threads {
-    SharedData* data;
-    int width, height;
-public:
-    LogicThread(SharedData* d, int w, int h) : data(d), width(w), height(h) {}
-    void run() override {
-        while(true) {
-            data->lock.lock();
-            bool wLeft = data->wantLeft;
-            bool wRight = data->wantRight;
-            bool wJump = data->wantJump;
-            
-            // Reset inputs for next frame logic
-            data->wantLeft = false;
-            data->wantRight = false;
-            data->wantJump = false;
-            
-            int mx = data->marioX;
-            int my = data->marioY;
-            int sx = data->scrollX;
-            int sy = data->scrollY;
-            bool isRight = data->isRight;
-            data->lock.unlock();
-
-            // Run physics
-            update_mario_position(mx, my, sx, sy, width, height, isRight, wLeft, wRight, wJump);
-
-            data->lock.lock();
-            data->marioX = mx;
-            data->marioY = my;
-            data->scrollX = sx;
-            data->scrollY = sy;
-            data->isRight = isRight;
-            data->lock.unlock();
-            
-            thread_yield(); 
-        }
-    }
-};
 
 // Display : gère l'affichage
 class DisplayThread : public Threads {
@@ -148,17 +62,17 @@ public:
         int oldX = 32, oldY = 100; // Init match SharedData defaults
 
         while(true) {
-            data->lock.lock();
+            data->lock.P();
             int curX = data->marioX;
             int curY = data->marioY;
             int curScrollX = data->scrollX;
-            bool curIsRight = data->isRight;
-            data->lock.unlock();
+            unsigned char *curSprite = data->marioSprite;
+            data->lock.V();
 
             display.set_offset(curScrollX, 0);
 
             if (curX != oldX || curY != oldY) {
-                 display.plot_moving_sprite(curIsRight ? marioSpriteData : marioSpriteDataReversed,
+                 display.plot_moving_sprite(curSprite,
                                         MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
                                         curX, curY,
                                         oldX, oldY,
@@ -204,11 +118,12 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     checkBus(0);
 
     // Create shared data
+    static KeyboardData kbdData;
     static SharedData data;
 
     // Create and start threads
-    static KeyboardThread kbd(&data);
-    static LogicThread logic(&data, 720, 240);
+    static KeyboardThread kbd(&kbdData);
+    static LogicThread logic(&kbdData, &data, 720, 240);
     static DisplayThread display(&data);
 
     kbd.start();

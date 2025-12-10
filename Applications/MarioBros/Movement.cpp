@@ -17,7 +17,8 @@ namespace {
     
     // Variables persistantes (état)
     int verticalVelocity = 0;
-    int velocityX = 0;            
+    int velocityX = 0;
+    bool facingRight = true;            
 
     // --- LOGIQUE DE COLLISION ---
     bool is_solid(int x, int y) {
@@ -49,17 +50,17 @@ namespace {
     }
 }
 
-void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int screenWidth, int screenHeight, bool& isRight, bool wantLeft, bool wantRight, bool wantJump) {
+void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int screenWidth, int screenHeight, unsigned char*& currentSprite, bool wantLeft, bool wantRight, bool wantJump) {
     int middleScreenX = scrollX + (screenWidth / 2 - MARIO_SPRITE_WIDTH);
     
     // 2. PHYSIQUE HORIZONTALE (Inertie)
     
     if (wantRight) {
         velocityX += ACCEL;
-        isRight = true;
+        facingRight = true;
     } else if (wantLeft) {
         velocityX -= ACCEL;
-        isRight = false;
+        facingRight = false;
     } else {
         // Friction (décélération naturelle si on n'appuie sur rien)
         if (velocityX > 0) {
@@ -70,6 +71,9 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
             if (velocityX > 0) velocityX = 0;
         }
     }
+
+    // Update sprite based on facing direction
+    currentSprite = facingRight ? marioSpriteData : marioSpriteDataReversed;
 
     // Limitation de vitesse (Clamp)
     if (velocityX > MAX_SPEED) velocityX = MAX_SPEED;
