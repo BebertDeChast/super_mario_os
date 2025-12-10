@@ -13,9 +13,11 @@
 
 #include <sextant/ordonnancements/cpu_context.h>
 #include <sextant/ordonnancements/preemptif/thread.h>
+#include <sextant/Activite/Threads.h>
 #include <sextant/types.h>
 
 #include <sextant/Synchronisation/Spinlock/Spinlock.h>
+#include <sextant/Synchronisation/Semaphore/Semaphore.h>
 
 #include <hal/pci.h>
 #include <drivers/vga.h>
@@ -34,82 +36,142 @@ int i;
 extern vaddr_t bootstrap_stack_bottom; // Adresse de début de la pile d'exécution
 extern size_t bootstrap_stack_size;    // Taille de la pile d'exécution
 
-struct GameState {
-    int marioX;
-    int marioY;
-    int scrollX;
-    int scrollY;
+struct SharedData {
+    struct {
+        Spinlock spin;
+        int val = 0;
+        void lock() { spin.Take(&val); }
+        void unlock() { spin.Release(&val); }
+    } lock;
+    
+    // Inputs (Written by Keyboard, Read/Reset by Logic)
+    bool wantLeft = false;
+    bool wantRight = false;
+    bool wantJump = false;
 
-    // État du joueur
-    bool isRight;
-
-    // Commandes du clavier
-    bool wantLeft;
-    bool wantRight;
-    bool wantJump;
-
-    Spinlock lock; 
-};
-
-
-void plotXYnewXnewY(PortSerie ps, int X, int Y, int newX, int newY)
-{
-    ps.ecrireMot("X =");
-    ps.afficherBase(X, 10);
-    ps.ecrireMot(" Y =");
-    ps.afficherBase(Y, 10);
-    ps.ecrireMot(" -> NewX =");
-    ps.afficherBase(newX, 10);
-    ps.ecrireMot(" NewY =");
-    ps.afficherBase(newY, 10);
-    ps.ecrireMot("\n");
-}
-
-void mario_bros()
-{
-    // Ecran 720x240, mode 8 bits (256 couleurs)
-    EcranBochs display(720, 240, LEVEL_WIDTH, VBE_MODE::_8);
-    Level level(&display);
-    PortSerie ps;
-
-    display.init();
-    display.clear(0);
-    display.set_palette(palette_vga);
-
-    // Position initiale
+    // Game State (Written by Logic, Read by Display)
     int marioX = 32;
     int marioY = 100;
-    int marioOldX = marioX;
-    int marioOldY = marioY;
     int scrollX = 0;
-    int scrollY = 0; // Ajouté car requis par la fonction update
+    int scrollY = 0;
     bool isRight = true;
+};
 
-    display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-    ps.ecrireMot("Mario Bros started\n");
-    // Affichage initial de Mario
-    // plotXYnewXnewY(ps, marioX, marioY, marioX, marioY);
+Semaphore render_next_frame;
 
-    while (true)
-    {
-        update_mario_position(marioX, marioY, scrollX, scrollY, display.getWidth(), display.getHeight(), isRight);
-
-        if (marioX != marioOldX || marioY != marioOldY)
-        {
-            plotXYnewXnewY(ps, marioOldX, marioOldY, marioX, marioY);
-            display.plot_moving_sprite(isRight ? marioSpriteData : marioSpriteDataReversed,
-                                       MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
-                                       marioX, marioY,
-                                       marioOldX, marioOldY,
-                                       level_sprite_indices);
+// Thread Keyboard : gère les entrées claviers et renvoie au thread Logic les touches appuyées
+class KeyboardThread : public Threads {
+    SharedData* data;
+    Clavier keyboard;
+public:
+    KeyboardThread(SharedData* d) : data(d) {}
+    void run() override {
+        while(true) {
+            bool left = false, right = false, jump = false;
+            // Read all pending characters
+            if (keyboard.is_pressed(AZERTY::K_Q)) left = true;
+            if (keyboard.is_pressed(AZERTY::K_D)) right = true;
+            if (keyboard.is_pressed(AZERTY::K_Z)) jump = true;
+            
+            if (left || right || jump) {
+                data->lock.lock();
+                if (left) data->wantLeft = true;
+                if (right) data->wantRight = true;
+                if (jump) data->wantJump = true;
+                data->lock.unlock();
+            }
+            
+            thread_yield();
         }
-        marioOldX = marioX;
-        marioOldY = marioY;
-
-        // 4. Mise à jour de la caméra
-        display.set_offset(scrollX, 0);
     }
-}
+};
+
+// Thread Logic : gère la logique.
+class LogicThread : public Threads {
+    SharedData* data;
+    int width, height;
+public:
+    LogicThread(SharedData* d, int w, int h) : data(d), width(w), height(h) {}
+    void run() override {
+        while(true) {
+            data->lock.lock();
+            bool wLeft = data->wantLeft;
+            bool wRight = data->wantRight;
+            bool wJump = data->wantJump;
+            
+            // Reset inputs for next frame logic
+            data->wantLeft = false;
+            data->wantRight = false;
+            data->wantJump = false;
+            
+            int mx = data->marioX;
+            int my = data->marioY;
+            int sx = data->scrollX;
+            int sy = data->scrollY;
+            bool isRight = data->isRight;
+            data->lock.unlock();
+
+            // Run physics
+            update_mario_position(mx, my, sx, sy, width, height, isRight, wLeft, wRight, wJump);
+
+            data->lock.lock();
+            data->marioX = mx;
+            data->marioY = my;
+            data->scrollX = sx;
+            data->scrollY = sy;
+            data->isRight = isRight;
+            data->lock.unlock();
+            
+            thread_yield(); 
+        }
+    }
+};
+
+// Display : gère l'affichage
+class DisplayThread : public Threads {
+    SharedData* data;
+public:
+    DisplayThread(SharedData* d) : data(d) {}
+    void run() override {
+        // Ecran 720x240, mode 8 bits (256 couleurs)
+        EcranBochs display(720, 240, LEVEL_WIDTH, VBE_MODE::_8);
+        Level level(&display);
+        PortSerie ps;
+
+        display.init();
+        display.clear(0);
+        display.set_palette(palette_vga);
+        
+        display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+        ps.ecrireMot("Mario Bros separated threads started\n");
+
+        int oldX = 32, oldY = 100; // Init match SharedData defaults
+
+        while(true) {
+            data->lock.lock();
+            int curX = data->marioX;
+            int curY = data->marioY;
+            int curScrollX = data->scrollX;
+            bool curIsRight = data->isRight;
+            data->lock.unlock();
+
+            display.set_offset(curScrollX, 0);
+
+            if (curX != oldX || curY != oldY) {
+                 display.plot_moving_sprite(curIsRight ? marioSpriteData : marioSpriteDataReversed,
+                                        MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
+                                        curX, curY,
+                                        oldX, oldY,
+                                        level_sprite_indices);
+                 oldX = curX;
+                 oldY = curY;
+            }
+
+            render_next_frame.P();
+        }
+    }
+};
+
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
 {
     Ecran ecran;
@@ -141,5 +203,19 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     // initialize pci bus to detect GPU address
     checkBus(0);
 
-    mario_bros();
+    // Create shared data
+    static SharedData data;
+
+    // Create and start threads
+    static KeyboardThread kbd(&data);
+    static LogicThread logic(&data, 720, 240);
+    static DisplayThread display(&data);
+
+    kbd.start();
+    logic.start();
+    display.start();
+
+    while (1) {
+        thread_yield();
+    }
 }

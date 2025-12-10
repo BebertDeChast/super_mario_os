@@ -13,7 +13,7 @@ LD_Darwin=i386-elf-ld
 ##Pour Linux
 CPP_Linux=g++
 LD_Linux=ld
-COMPOP_Linux=-fno-stack-protector -m32 -O3
+COMPOP_Linux=-fno-stack-protector -m32
 LIEUR_Linux=-m elf_i386
 QEMU=qemu-system-i386 
 
@@ -25,7 +25,7 @@ LD_WindowsNT=ld
 #-------------------
 ## Partie commune a toutes les configurations
 
-CPPFLAGS  = -gdwarf-2 -g3 -Wall -fno-builtin -fno-rtti -fno-exceptions -nostdinc $($(COMPILATEUR_OPTION))
+CPPFLAGS  = -gdwarf-2 -g3 -Wall -fno-builtin -fno-rtti -fno-exceptions -fno-threadsafe-statics -nostdinc $($(COMPILATEUR_OPTION))
 LDFLAGS = --warn-common -nostdlib $($(LIEUR_OPTION))
 
 PWD :=.
