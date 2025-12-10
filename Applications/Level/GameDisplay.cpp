@@ -21,7 +21,12 @@ void GameDisplay::run()
     int oldX = g->marioX;
     int oldY = g->marioY;
     int oldScrollX = g->scrollX;
+    unsigned char* initSprite = g->marioSprite;
     g->lock.V();
+
+    display.plot_sprite(initSprite,
+                        MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
+                        oldX, oldY);
 
     display.set_offset(oldScrollX, 0);
 

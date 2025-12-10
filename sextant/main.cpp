@@ -16,7 +16,6 @@
 #include <sextant/Activite/Threads.h>
 #include <sextant/types.h>
 
-#include <sextant/Synchronisation/Spinlock/Spinlock.h>
 #include <sextant/Synchronisation/Semaphore/Semaphore.h>
 
 #include <hal/pci.h>
@@ -26,12 +25,12 @@
 #include <sextant/sprite.h>
 #include <Applications/MarioBros/Movement.h>
 
-#include <Applications/Level/Level.h>
 #include <Applications/Level/Level_display_data.h>
 #include <hal/fonctionsES.h>
 
 #include <Applications/Keyboard/Keyboard.h>
 #include <Applications/MarioBros/Logic.h>
+#include <Applications/Level/GameDisplay.h>
 
 extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;
@@ -40,51 +39,6 @@ extern vaddr_t bootstrap_stack_bottom; // Adresse de début de la pile d'exécut
 extern size_t bootstrap_stack_size;    // Taille de la pile d'exécution
 
 Semaphore render_next_frame;
-
-// Display : gère l'affichage
-class DisplayThread : public Threads {
-    SharedData* data;
-public:
-    DisplayThread(SharedData* d) : data(d) {}
-    void run() override {
-        // Ecran 720x240, mode 8 bits (256 couleurs)
-        EcranBochs display(720, 240, LEVEL_WIDTH, VBE_MODE::_8);
-        Level level(&display);
-        PortSerie ps;
-
-        display.init();
-        display.clear(0);
-        display.set_palette(palette_vga);
-        
-        display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
-        ps.ecrireMot("Mario Bros separated threads started\n");
-
-        int oldX = 32, oldY = 100; // Init match SharedData defaults
-
-        while(true) {
-            data->lock.P();
-            int curX = data->marioX;
-            int curY = data->marioY;
-            int curScrollX = data->scrollX;
-            unsigned char *curSprite = data->marioSprite;
-            data->lock.V();
-
-            display.set_offset(curScrollX, 0);
-
-            if (curX != oldX || curY != oldY) {
-                 display.plot_moving_sprite(curSprite,
-                                        MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
-                                        curX, curY,
-                                        oldX, oldY,
-                                        level_sprite_indices);
-                 oldX = curX;
-                 oldY = curY;
-            }
-
-            render_next_frame.P();
-        }
-    }
-};
 
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
 {
@@ -119,12 +73,12 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
 
     // Create shared data
     static KeyboardData kbdData;
-    static SharedData data;
+    static GameData data;
 
     // Create and start threads
     static KeyboardThread kbd(&kbdData);
     static LogicThread logic(&kbdData, &data, 720, 240);
-    static DisplayThread display(&data);
+    static GameDisplay display(&data);
 
     kbd.start();
     logic.start();

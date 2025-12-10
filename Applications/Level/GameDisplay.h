@@ -1,16 +1,19 @@
+#ifndef GAMEDISPLAY_H
 #define GAMEDISPLAY_H
 
 #include <drivers/EcranBochs.h>
 #include <drivers/Clavier.h>
 #include <sextant/types.h>
 #include <drivers/timer.h>
+#include <sextant/Activite/Threads.h>
+#include <Applications/GameData.h>
 
 /**
  * @file LevelDisplay.h
  * @class LevelDisplay
  * @brief Affiche le niveau actuel du jeu.
  */
-class GameDisplay
+class GameDisplay : public Threads
 {
     GameData *g;
 
@@ -20,5 +23,7 @@ public:
      * @param e écran pour l'affichage
      */
     GameDisplay(GameData *data);
-    void run();
+    void run() override;
 };
+
+#endif

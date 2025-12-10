@@ -2,7 +2,7 @@
 #include <sextant/ordonnancements/preemptif/thread.h>
 #include <Applications/MarioBros/Movement.h>
 
-LogicThread::LogicThread(KeyboardData* k, SharedData* d, int w, int h) {
+LogicThread::LogicThread(KeyboardData* k, GameData* d, int w, int h) {
     kbdData = k;
     data = d;
     width = w;

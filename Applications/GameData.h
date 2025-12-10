@@ -1,4 +1,8 @@
-#include <semaphore.h>
+#ifndef GAMEDATA_H
+#define GAMEDATA_H
+
+#include <sextant/Synchronisation/Semaphore/Semaphore.h>
+#include <sextant/sprite.h>
 
 struct GameData
 {
@@ -12,3 +16,5 @@ struct GameData
 
     Semaphore lock;
 };
+
+#endif
