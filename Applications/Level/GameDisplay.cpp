@@ -10,6 +10,7 @@ GameDisplay::GameDisplay(GameData *data)
 
 void GameDisplay::run()
 {
+    g->ps.ecrireMot("[GameDisplay] Starting ...\n");
     EcranBochs display(720, 240, LEVEL_WIDTH, VBE_MODE::_8);
     display.init();
     display.clear(0);
@@ -18,11 +19,13 @@ void GameDisplay::run()
     display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
 
     g->lock.P();
+    g->ps.ecrireMot("[GameDisplay] Locked\n");
     int oldX = g->marioX;
     int oldY = g->marioY;
     int oldScrollX = g->scrollX;
     unsigned char* initSprite = g->marioSprite;
     g->lock.V();
+    g->ps.ecrireMot("[GameDisplay] Unlocked\n");
 
     display.plot_sprite(initSprite,
                         MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
@@ -33,6 +36,7 @@ void GameDisplay::run()
     while (true)
     {
         g->lock.P();
+        g->ps.ecrireMot("[GameDisplay] Locked in loop\n");
         if (oldX != g->marioX || oldY != g->marioY)
         {
             display.plot_moving_sprite(g->marioSprite,
@@ -46,5 +50,7 @@ void GameDisplay::run()
             oldScrollX = g->scrollX;
         }
         g->lock.V();
+        g->ps.ecrireMot("[GameDisplay] Unlocked in loop\n");
+        thread_yield();
     }
 }

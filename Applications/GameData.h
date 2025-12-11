@@ -3,6 +3,7 @@
 
 #include <sextant/Synchronisation/Semaphore/Semaphore.h>
 #include <sextant/sprite.h>
+#include <drivers/PortSerie.h>
 
 struct GameData
 {
@@ -15,6 +16,7 @@ struct GameData
     unsigned char *marioSprite;
 
     Semaphore lock;
+    PortSerie ps;
 };
 
 #endif

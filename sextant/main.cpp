@@ -7,11 +7,9 @@
 #include <sextant/interruptions/handler/handler_tic.h>
 #include <sextant/interruptions/handler/handler_clavier.h>
 #include <drivers/timer.h>
-#include <drivers/Clavier.h>
 
 #include <sextant/memoire/memoire.h>
 
-#include <sextant/ordonnancements/cpu_context.h>
 #include <sextant/ordonnancements/preemptif/thread.h>
 #include <sextant/Activite/Threads.h>
 #include <sextant/types.h>
@@ -19,14 +17,6 @@
 #include <sextant/Synchronisation/Semaphore/Semaphore.h>
 
 #include <hal/pci.h>
-#include <drivers/vga.h>
-#include <drivers/EcranBochs.h>
-
-#include <sextant/sprite.h>
-#include <Applications/MarioBros/Movement.h>
-
-#include <Applications/Level/Level_display_data.h>
-#include <hal/fonctionsES.h>
 
 #include <Applications/Keyboard/Keyboard.h>
 #include <Applications/MarioBros/Logic.h>
@@ -44,6 +34,7 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
 {
     Ecran ecran;
     Timer timer;
+    PortSerie ps;
 
     idt_setup();
     irq_setup();
@@ -75,6 +66,18 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     static KeyboardData kbdData;
     static GameData data;
 
+    // Initialize GameData with default values before starting threads
+    data.marioX = 50;
+    data.marioY = 180;
+    data.scrollX = 0;
+    data.scrollY = 0;
+    data.marioSprite = marioSpriteData; // Assign the default right-facing sprite
+
+    ps.ecrireMot("\nStarting MarioBros...\n");
+    ps.afficherGameData(&data);
+    data.lock.V();
+    kbdData.lock.V();
+
     // Create and start threads
     static KeyboardThread kbd(&kbdData);
     static LogicThread logic(&kbdData, &data, 720, 240);
@@ -84,7 +87,8 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     logic.start();
     display.start();
 
-    while (1) {
+    while (1)
+    {
         thread_yield();
     }
 }
