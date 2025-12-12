@@ -18,6 +18,7 @@
 
 
 #include "thread.h"
+#include <sextant/Synchronisation/Semaphore/Semaphore.h>
 
 
 /**
@@ -45,8 +46,12 @@ extern "C" {
 static struct thread thread_list[MAX_THREAD];
 stack_t thread_stack[MAX_THREAD];
 
+extern Semaphore render_next_frame;
+int clock = 0;
+
 void sched_clk(int intid) {
-   thread_yield();
+	clock = (clock + 1) % 30;
+    if (clock == 0) render_next_frame.V();
 }
 
 struct thread *thread_get_current(){

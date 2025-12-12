@@ -10,14 +10,14 @@
 
 #include <hal/fonctionsES.h>
 
-class PortSerie {
-public :
+struct GameData;
 
-
-	void ecrireMot(const char*);
+class PortSerie
+{
+public:
+	void ecrireMot(const char *);
 	void afficherBase(unsigned int entier, int base);
 	void afficherCaractere(char c);
-
-
+	void afficherGameData(GameData *data);
 };
 #endif /* PORTSERIE_H_ */

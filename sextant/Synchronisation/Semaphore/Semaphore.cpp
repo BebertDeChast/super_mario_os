@@ -10,6 +10,7 @@
 int Semaphore::sem = 0;
 int Semaphore::lock = 0;
 
+/* Increment the semaphore and wake up a waiting thread if any */
 void Semaphore::P(){
 	mySpinlock.Take(&lock);
 	value=value-1;
@@ -26,7 +27,8 @@ int Semaphore::Valeur(){
 	return value;
 }
 
-void Semaphore::V(){
+/* Decrement the semaphore and wake up a waiting thread if any */
+void Semaphore::V(){ 
 	if (value<0) {
 		mySpinlock.Take(&lock);
 		value=value+1;

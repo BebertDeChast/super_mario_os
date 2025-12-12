@@ -1,4 +1,8 @@
-# VGA Integration
+![Super Mario Bros](https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/6e64b8f7-82f5-47e5-9319-e2e69ca6f56d/d9f6x59-83bc7697-99b5-4ab1-b56c-48286f982b2b.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiIvZi82ZTY0YjhmNy04MmY1LTQ3ZTUtOTMxOS1lMmU2OWNhNmY1NmQvZDlmNng1OS04M2JjNzY5Ny05OWI1LTRhYjEtYjU2Yy00ODI4NmY5ODJiMmIuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.mnTmFaDVNoVFe89N6uVgroG2RosfYFWHRAjuRqImtII)
+
+# Super Mario Bros
+
+## VGA Integration
 
 In this zip file you will find two VGA drivers you can use for your project.
 The first one (`vga.c` and `vga.h`), will permit to switch to [VGA mode](https://en.wikipedia.org/wiki/Mode_13h) (320x200, 256 colors), set a palette and plot imported sprites.
@@ -6,7 +10,7 @@ The second one, Bochs Driver, enables a more powerful [graphic backend](https://
 
 If you plan to use 4 or 8 bits palettes the next sections are the same between the two drivers.
 
-## Palette array integration
+### Palette array integration
 
 Palette is the way to set custom colors in mode. For VGA each of the 256 colors can be set to a given 0-63 value (6 bits) for RGB, thus summing up to 262144 potential colors. Using the right palette is mandatory to draw faithfully a sprite. It can be changed at runtime.
 
@@ -18,7 +22,7 @@ python support/vga/palette.py atari-8-bit-family-gtia.pal
 
 Then integrated the generated array in your code, and use the function 
 
-## Sprite array integration (with palette)
+### Sprite array integration (with palette)
 
 Sprites are included as unsigned char arrays, of the size of the sprite (ex: 32x32). 
 The [sprite.py](support/vga/sprite.py) script permits to generate the needed array (and potentially palette) from a PNG file (only). 
@@ -30,7 +34,7 @@ python support/vga/sprite.py file.png -p atari-8-bit-family-gtia.pal # if you ar
 
 Then, include the generated array in your code and use the `draw_sprite` with it.
 
-## Usage in code
+### Usage in code
 
 Include [vga.h](vga.h) and [sprite.h](sprite.h)
 Copy the necessary arrays for palette and sprites.
@@ -76,7 +80,7 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
 }
 ```
 
-### RGB access with Bochs driver
+#### RGB access with Bochs driver
 
 The Bochs drivers allows you to have more than 256 colors and choose custom resolution for your screen.
 
@@ -114,11 +118,11 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
 }
 ```
 
-### "Transparent" color
+#### "Transparent" color
 
 It is assumed in `draw_sprite` that the transparent color (not drawed) is the 255. You can change this at ease. Don't forget to take that into account in your sprites!
 
-## Additional resources
+### Additional resources
 
 [Palettes](https://lospec.com/palette-list)
 [Pixel editor](https://apps.lospec.com/pixel-editor)
