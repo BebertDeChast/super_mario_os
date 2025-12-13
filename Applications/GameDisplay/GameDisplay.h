@@ -16,6 +16,9 @@
 class GameDisplay : public Threads
 {
     GameData *g;
+    EcranBochs display;
+
+    const unsigned char *createWordFromSpritesText(const unsigned char *letters[], int length);
 
 public:
     /**
@@ -24,7 +27,7 @@ public:
      */
     GameDisplay(GameData *data);
     void run() override;
-    void afficherHUD();
+    void afficherHUD(bool init = false);
 };
 
 #endif

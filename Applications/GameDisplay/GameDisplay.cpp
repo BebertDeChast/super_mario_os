@@ -2,8 +2,9 @@
 #include <Applications/GameData.h>
 #include <Applications/GameDisplay/Level_display_data.h>
 #include <sextant/sprite.h> // for palette_vga
+#include <Applications/GameDisplay/spritesText.h>
 
-GameDisplay::GameDisplay(GameData *data)
+GameDisplay::GameDisplay(GameData *data) : display(720, 240, LEVEL_WIDTH, VBE_MODE::_8)
 {
     g = data;
 }
@@ -11,7 +12,6 @@ GameDisplay::GameDisplay(GameData *data)
 void GameDisplay::run()
 {
     g->ps.ecrireMot("[GameDisplay] Starting ...\n");
-    EcranBochs display(720, 240, LEVEL_WIDTH, VBE_MODE::_8);
     display.init();
     display.clear(0);
     display.set_palette(palette_vga);
@@ -23,7 +23,7 @@ void GameDisplay::run()
     int oldX = g->marioX;
     int oldY = g->marioY;
     int oldScrollX = g->scrollX;
-    unsigned char* initSprite = g->marioSprite;
+    unsigned char *initSprite = g->marioSprite;
     g->lock.V();
     g->ps.ecrireMot("[GameDisplay] Unlocked\n");
 
@@ -32,6 +32,7 @@ void GameDisplay::run()
                         oldX, oldY);
 
     display.set_offset(oldScrollX, 0);
+    afficherHUD(true);
 
     while (true)
     {
@@ -55,8 +56,48 @@ void GameDisplay::run()
     }
 }
 
-void GameDisplay::afficherHUD()
+void GameDisplay::afficherHUD(bool init)
 {
     // Implémentation de l'affichage du HUD
-    
+    // Le HUD commence à la position (30, 30) de l'écran affiché (/= VRAM)
+    // il affiche le mot "MARIO" puis le score sur 6 chiffres en dessous
+
+    // Calcul de la position du HUD dans la VRAM en fonction du scrollX
+    int hudX = 30 + g->scrollX;
+    int hudY = 30;
+
+    // créer le sprite marioText en concaténant les sprites des lettres M A R I O
+    const unsigned char *marioText = createWordFromSpritesText(
+        (const unsigned char *[]){
+            spriteM,
+            spriteA,
+            spriteR,
+            spriteI,
+            spriteO},
+        5);
+
+    if (init)
+    {
+        g->ps.ecrireMot("[GameDisplay] Initializing HUD\n");
+
+        // Affichage du mot "MARIO"
+        display.plot_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT, hudX, hudY);
+    }
+}
+
+const unsigned char *GameDisplay::createWordFromSpritesText(const unsigned char *letters[], int length)
+{
+    static unsigned char word[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 20];
+    int index = 0;
+    for (int y = 0; y < SPRITE_TEXT_HEIGHT; y++)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            for (int x = 0; x < SPRITE_TEXT_WIDTH; x++)
+            {
+                word[index++] = letters[i][y * SPRITE_TEXT_WIDTH + x];
+            }
+        }
+    }
+    return (const unsigned char *)word;
 }

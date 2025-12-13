@@ -1,11 +1,11 @@
-#ifndef LEVEL_DATA_INDEXED_H
-#define LEVEL_DATA_INDEXED_H
+#ifndef SPRITESTEXT_H
+#define SPRITESTEXT_H
 
 // G�n�r� � partir de : sprites\NES - Super Mario Bros. Text.png
 // Palette utilis�e   : support\vga\atari-8-bit-family-gtia.pal
 
-const int SPRITE_WIDTH = 8;
-const int SPRITE_HEIGHT = 8;
+const int SPRITE_TEXT_WIDTH = 8;
+const int SPRITE_TEXT_HEIGHT = 8;
 
 const unsigned char sprite0[] = {
     0, 0, 15, 15, 15, 0, 0, 0,
