@@ -1,11 +1,14 @@
+from pathlib import Path
 from PIL import Image
 import sys
 import math
 
 # Configuration
-INPUT_IMAGE = r"sprites\NES - Super Mario Bros. - Stages - World 1-1.png"
-INPUT_PALETTE = r"support\vga\atari-8-bit-family-gtia.pal"
-OUTPUT_HEADER = r"Applications\Level\Level_display_data.h"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+INPUT_IMAGE = BASE_DIR / "sprites" / "NES - Super Mario Bros. - Stages - World 1-1.png"
+INPUT_PALETTE = BASE_DIR / "support" / "vga" / "atari-8-bit-family-gtia.pal"
+OUTPUT_HEADER = BASE_DIR / "Applications" / "Level" / "Level_display_data.h"
 VAR_NAME = "level_sprite_indices"
 
 # ---------------------------------------------------------
