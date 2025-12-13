@@ -1,6 +1,6 @@
 #include "Applications/MarioBros/Movement.h"
-#include "Applications/Gamedisplay/LevelCollision.h"
-#include "sextant/sprite.h"
+#include "Applications/MarioBros/LevelCollision.h"
+#include "sprites/MarioSprites.h"
 
 namespace {
     // --- CONSTANTES PHYSIQUES ---

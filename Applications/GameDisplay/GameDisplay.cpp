@@ -1,9 +1,10 @@
 #include "GameDisplay.h"
 #include <Applications/GameData.h>
-#include <Applications/GameDisplay/Level_display_data.h>
-#include <sextant/sprite.h> // for palette_vga
-#include <Applications/GameDisplay/spritesText.h>
-#include <Applications/MarioBros/GoombaSprite.h>
+#include <sprites/Level_display_data.h>
+#include <sprites/palette.h> // for palette_vga
+#include <sprites/MarioSprites.h>
+#include <sprites/spritesText.h>
+#include <sprites/GoombaSprite.h>
 
 GameDisplay::GameDisplay(GameData *data) : display(720, 240, LEVEL_WIDTH, VBE_MODE::_8)
 {
