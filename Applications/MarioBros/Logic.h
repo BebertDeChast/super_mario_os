@@ -4,13 +4,6 @@
 #include <sextant/Synchronisation/Semaphore/Semaphore.h>
 #include <sextant/sprite.h>
 #include <Applications/GameData.h>
-struct Goomba {
-    int x, y;
-    int width, height;
-    int vx, vy;
-    int minX, maxX;
-    bool active;
-};
 
 // Thread Logic : gère la logique.
 class LogicThread : public Threads {
@@ -19,7 +12,6 @@ class LogicThread : public Threads {
     int width, height;
     
 public:
-    Goomba goomba;
     int lives;
     int invincibilityTimer;
     void resetMarioPosition();

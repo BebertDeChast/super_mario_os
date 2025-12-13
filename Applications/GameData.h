@@ -20,6 +20,8 @@ struct GameData
     int goombaY;
     bool goombaActive;
 
+    Semaphore run_mob;
+    bool resetGoomba;
     Semaphore lock;
     PortSerie ps;
 };

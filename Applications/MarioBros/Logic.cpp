@@ -34,15 +34,6 @@ void LogicThread::run() {
     
     lives = 3;
     invincibilityTimer = 0;
-    goomba.x = 200;
-    goomba.y = 180;
-    goomba.width = 16;
-    goomba.height = 16;
-    goomba.active = true;
-    goomba.vx = -1;
-    goomba.vy = 0;
-    goomba.minX = 100;
-    goomba.maxX = 300;
 
     while(true) {
         render_next_frame.P();
@@ -66,6 +57,10 @@ void LogicThread::run() {
         int sx = data->scrollX;
         int sy = data->scrollY;
         unsigned char *mSprite = data->marioSprite;
+        // Read Goomba state for collision
+        int gx = data->goombaX;
+        int gy = data->goombaY;
+        bool gActive = data->goombaActive;
         data->lock.V();
         data->ps.ecrireMot("[Logic] Unlocked GameData\n");
         
@@ -75,21 +70,14 @@ void LogicThread::run() {
 
         update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump);
 
-        if (goomba.active) {
-            update_goomba_position(goomba.x, goomba.y, goomba.vx, goomba.vy, width, height);
+        // Signal MobLogic to run
+        data->run_mob.V();
 
-            // Patrol logic
-            if (goomba.x <= goomba.minX) {
-                goomba.x = goomba.minX;
-                goomba.vx = 1;
-            } else if (goomba.x >= goomba.maxX) {
-                goomba.x = goomba.maxX;
-                goomba.vx = -1;
-            }
+        if (gActive) {
             
             // Check collision with Mario
             // Adjusted hitbox: Mario (x+8, w=16) and Goomba (x+2, w=12) to ignore transparent pixels
-            if (invincibilityTimer == 0 && checkCollision(mx + 8, my + 4, 16, 28, goomba.x + 2, goomba.y + 4, 12, 12)) {
+            if (invincibilityTimer == 0 && checkCollision(mx + 8, my + 4, 16, 28, gx + 2, gy + 4, 12, 12)) {
                 lives--;
                 invincibilityTimer = 50; // Increased invincibility time
                  data->ps.ecrireMot("[Logic] Hit Goomba! Lives left: ");
@@ -103,8 +91,9 @@ void LogicThread::run() {
                 } else {
                     resetMarioPosition();
                     // Reset Goomba position to avoid spawn-kill loop
-                    goomba.x = 200;
-                    goomba.vx = -1;
+                    data->lock.P();
+                    data->resetGoomba = true;
+                    data->lock.V();
                     
                     // Force local variables to reset position immediately
                     mx = 50;
@@ -122,9 +111,6 @@ void LogicThread::run() {
         data->scrollX = sx;
         data->scrollY = sy;
         data->marioSprite = mSprite;
-        data->goombaX = goomba.x;
-        data->goombaY = goomba.y;
-        data->goombaActive = goomba.active;
         data->lock.V();
         data->ps.ecrireMot("[Logic] Unlocked GameData\n");
         
