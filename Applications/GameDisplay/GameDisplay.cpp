@@ -62,13 +62,19 @@ void GameDisplay::afficherHUD(int oldscrollX, bool init)
     // Implémentation de l'affichage du HUD
     // Le HUD commence à la position (25, 15) de l'écran affiché (/= VRAM)
     // il affiche le mot "MARIO" puis le score sur 6 chiffres en dessous
+    int Xmargin = 25;
+    int Ymargin = 15;
 
-    // Calcul de la position du HUD dans la VRAM en fonction du scrollX
-    int hudX = 25 + g->scrollX;
-    int hudY = 15;
-    int oldHudX = 25 + oldscrollX;
+    // Calcul de la position du HUD de gauche dans la VRAM en fonction du scrollX
+    int hudX = Xmargin + g->scrollX;
+    int hudY = Ymargin;
+    int oldHudX = Xmargin + oldscrollX;
 
-    // créer le sprite marioText en concaténant les sprites des lettres M A R I O
+    // Calcul de la position du HUD de droite dans la VRAM en fonction du scrollX
+    int hudRightX = 720 - Xmargin + g->scrollX;
+    int oldHudRightX = 720 - Xmargin + oldscrollX;
+
+    // Création du sprite "MARIO"
     const unsigned char *marioText = createWordFromSpritesText(
         (const unsigned char *[]){
             spriteM,
@@ -78,8 +84,23 @@ void GameDisplay::afficherHUD(int oldscrollX, bool init)
             spriteO},
         5);
 
-    // Affichage du score en dessous de "MARIO"
+    // Création du sprite du score sur 6 chiffres
     const unsigned char *scoreText = createNumberFromSpritesText(g->score, 6);
+
+    // Création du spite "LIVES"
+    const unsigned char *timeText = createWordFromSpritesText(
+        (const unsigned char *[]){
+            spriteL,
+            spriteI,
+            spriteV,
+            spriteE,
+            spriteS},
+        5);
+
+    // Création du sprite du nombre de vies sur 2 chiffres
+    const unsigned char *livesText = createNumberFromSpritesText(g->lives, 2);
+
+    // Affichage du HUD
 
     if (init)
     {
@@ -87,8 +108,12 @@ void GameDisplay::afficherHUD(int oldscrollX, bool init)
 
         // Affichage du mot "MARIO"
         display.plot_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT, hudX, hudY);
-        // Affichage du score
+        // Affichage du score en dessous de "MARIO"
         display.plot_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT, hudX, hudY + SPRITE_TEXT_HEIGHT);
+        // Affichage du mot "LIVES" à droite de l'écran
+        display.plot_sprite((void *)timeText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT, hudRightX - SPRITE_TEXT_WIDTH * 5, hudY);
+        // Affichage du nombre de vies en dessous de "LIVES"
+        display.plot_sprite((void *)livesText, SPRITE_TEXT_WIDTH * 2, SPRITE_TEXT_HEIGHT, hudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT);
     }
     else
     {
@@ -100,6 +125,14 @@ void GameDisplay::afficherHUD(int oldscrollX, bool init)
         display.plot_moving_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT,
                                    hudX, hudY + SPRITE_TEXT_HEIGHT,
                                    oldHudX, hudY + SPRITE_TEXT_HEIGHT,
+                                   level_sprite_indices);
+        display.plot_moving_sprite((void *)timeText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
+                                   hudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
+                                   oldHudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
+                                   level_sprite_indices);
+        display.plot_moving_sprite((void *)livesText, SPRITE_TEXT_WIDTH * 2, SPRITE_TEXT_HEIGHT,
+                                   hudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT,
+                                   oldHudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT,
                                    level_sprite_indices);
     }
 }
