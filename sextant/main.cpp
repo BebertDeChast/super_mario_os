@@ -79,7 +79,6 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     data.resetGoomba = false;
 
     ps.ecrireMot("\nStarting MarioBros...\n");
-    ps.afficherGameData(&data);
     data.lock.V();
     kbdData.lock.V();
 
