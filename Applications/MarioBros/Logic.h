@@ -2,7 +2,7 @@
 #include <sextant/Activite/Threads.h>
 #include <Applications/Keyboard/Keyboard.h>
 #include <sextant/Synchronisation/Semaphore/Semaphore.h>
-#include <sextant/sprite.h>
+#include <sprites/MarioSprites.h>
 #include <Applications/GameData.h>
 
 // Thread Logic : gère la logique.

@@ -2,7 +2,7 @@
 #define GAMEDATA_H
 
 #include <sextant/Synchronisation/Semaphore/Semaphore.h>
-#include <sextant/sprite.h>
+#include <sprites/MarioSprites.h>
 #include <drivers/PortSerie.h>
 
 struct GameData
