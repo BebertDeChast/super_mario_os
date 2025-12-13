@@ -24,6 +24,7 @@ public:
      */
     GameDisplay(GameData *data);
     void run() override;
+    void afficherHUD();
 };
 
 #endif

@@ -1,6 +1,6 @@
 #include "GameDisplay.h"
 #include <Applications/GameData.h>
-#include <Applications/Level/Level_display_data.h>
+#include <Applications/GameDisplay/Level_display_data.h>
 #include <sextant/sprite.h> // for palette_vga
 
 GameDisplay::GameDisplay(GameData *data)
@@ -53,4 +53,10 @@ void GameDisplay::run()
         g->ps.ecrireMot("[GameDisplay] Unlocked in loop\n");
         thread_yield();
     }
+}
+
+void GameDisplay::afficherHUD()
+{
+    // Implémentation de l'affichage du HUD
+    
 }

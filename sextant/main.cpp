@@ -20,7 +20,7 @@
 
 #include <Applications/Keyboard/Keyboard.h>
 #include <Applications/MarioBros/Logic.h>
-#include <Applications/Level/GameDisplay.h>
+#include <Applications/GameDisplay/GameDisplay.h>
 
 extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;
