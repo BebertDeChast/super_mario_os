@@ -2,6 +2,7 @@
 #include <Applications/GameData.h>
 #include <Applications/Level/Level_display_data.h>
 #include <sextant/sprite.h> // for palette_vga
+#include <Applications/MarioBros/GoombaSprite.h>
 
 GameDisplay::GameDisplay(GameData *data)
 {
@@ -24,6 +25,8 @@ void GameDisplay::run()
     int oldY = g->marioY;
     int oldScrollX = g->scrollX;
     unsigned char* initSprite = g->marioSprite;
+    int oldGoombaX = g->goombaX;
+    int oldGoombaY = g->goombaY;
     g->lock.V();
     g->ps.ecrireMot("[GameDisplay] Unlocked\n");
 
@@ -49,6 +52,20 @@ void GameDisplay::run()
             display.set_offset(g->scrollX, 0);
             oldScrollX = g->scrollX;
         }
+
+        // Render Goomba
+        if (g->goombaActive) {
+            if (oldGoombaX != g->goombaX || oldGoombaY != g->goombaY) {
+                display.plot_moving_sprite(goombaSpriteData,
+                                           GOOMBA_WIDTH, GOOMBA_HEIGHT,
+                                           g->goombaX, g->goombaY,
+                                           oldGoombaX, oldGoombaY,
+                                           level_sprite_indices);
+                oldGoombaX = g->goombaX;
+                oldGoombaY = g->goombaY;
+            }
+        }
+
         g->lock.V();
         g->ps.ecrireMot("[GameDisplay] Unlocked in loop\n");
         thread_yield();

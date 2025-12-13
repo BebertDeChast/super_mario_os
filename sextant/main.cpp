@@ -72,6 +72,9 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     data.scrollX = 0;
     data.scrollY = 0;
     data.marioSprite = marioSpriteData; // Assign the default right-facing sprite
+    data.goombaX = 200;
+    data.goombaY = 180;
+    data.goombaActive = true;
 
     ps.ecrireMot("\nStarting MarioBros...\n");
     ps.afficherGameData(&data);

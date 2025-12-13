@@ -15,6 +15,11 @@ struct GameData
     // pointeur vers le sprite Mario (droit ou gauche)
     unsigned char *marioSprite;
 
+    // Goomba State
+    int goombaX;
+    int goombaY;
+    bool goombaActive;
+
     Semaphore lock;
     PortSerie ps;
 };

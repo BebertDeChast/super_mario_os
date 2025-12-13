@@ -28,10 +28,7 @@ namespace {
         return collision_map[gridY * MAP_WIDTH + gridX] != 0; 
     }
 
-    bool check_collision(int x, int y) {
-        int w = MARIO_SPRITE_WIDTH;
-        int h = MARIO_SPRITE_HEIGHT;
-        
+    bool check_collision(int x, int y, int w, int h) {
         // Coins
         if (is_solid(x, y)) return true;
         if (is_solid(x + w - 1, y)) return true;
@@ -47,6 +44,44 @@ namespace {
         // Centre
         if (is_solid(x + w / 2, y + h / 2)) return true;
         return false;
+    }
+}
+
+void reset_mario_physics() {
+    verticalVelocity = 0;
+    velocityX = 0;
+    facingRight = true;
+}
+
+void update_goomba_position(int& x, int& y, int& vx, int& vy, int screenWidth, int screenHeight) {
+    // Gravity
+    vy += GRAVITY;
+    if (vy > MAX_FALL_SPEED) vy = MAX_FALL_SPEED;
+
+    // Horizontal Movement
+    if (vx == 0) vx = -1; // Start moving left if stationary
+
+    int nextX = x + vx;
+    int nextY = y + vy;
+
+    // Collision X
+    if (check_collision(nextX, y, 16, 16)) {
+        vx = -vx; // Reverse direction
+    } else {
+        x = nextX;
+    }
+
+    // Collision Y
+    if (check_collision(x, nextY, 16, 16)) {
+        if (vy > 0) { // Landing
+            int blockBottomY = ((nextY + 16 - 1) / TILE_SIZE) * TILE_SIZE;
+            y = blockBottomY - 16;
+            vy = 0;
+        } else {
+            y = nextY;
+        }
+    } else {
+        y = nextY;
     }
 }
 
@@ -83,7 +118,7 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
     int nextX = x + velocityX;
 
     // Collisions X
-    if (check_collision(nextX, y)) {
+    if (check_collision(nextX, y, MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT)) {
         velocityX = 0; // On s'arrête net contre un mur
     } else {
         if (nextX < scrollX) {
@@ -100,7 +135,7 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
     }
 
     // 3. PHYSIQUE VERTICALE
-    bool isGrounded = check_collision(x, y + 1);
+    bool isGrounded = check_collision(x, y + 1, MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT);
 
     // Saut
     if (wantJump && isGrounded) {
@@ -116,7 +151,7 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
 
     // Collisions Y
     if (verticalVelocity > 0) { // Chute
-        if (check_collision(x, nextY)) {
+        if (check_collision(x, nextY, MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT)) {
             // Sol
             int blockBottomY = ((nextY + MARIO_SPRITE_HEIGHT - 1) / TILE_SIZE) * TILE_SIZE;
             y = blockBottomY - MARIO_SPRITE_HEIGHT;
@@ -125,7 +160,7 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
             y = nextY;
         }
     } else if (verticalVelocity < 0) { // Montée
-        if (check_collision(x, nextY)) {
+        if (check_collision(x, nextY, MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT)) {
             // Plafond
             int blockTopY = ((nextY) / TILE_SIZE + 1) * TILE_SIZE;
             y = blockTopY;
