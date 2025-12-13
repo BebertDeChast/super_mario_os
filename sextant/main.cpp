@@ -20,6 +20,7 @@
 
 #include <Applications/Keyboard/Keyboard.h>
 #include <Applications/MarioBros/Logic.h>
+#include <Applications/MarioBros/MobLogic.h>
 #include <Applications/GameDisplay/GameDisplay.h>
 
 extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
@@ -72,6 +73,10 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     data.scrollX = 0;
     data.scrollY = 0;
     data.marioSprite = marioSpriteData; // Assign the default right-facing sprite
+    data.goombaX = 200;
+    data.goombaY = 180;
+    data.goombaActive = true;
+    data.resetGoomba = false;
 
     ps.ecrireMot("\nStarting MarioBros...\n");
     ps.afficherGameData(&data);
@@ -81,10 +86,12 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     // Create and start threads
     static KeyboardThread kbd(&kbdData);
     static LogicThread logic(&kbdData, &data, 720, 240);
+    static MobLogic mobLogic(&data, 720, 240);
     static GameDisplay display(&data);
 
     kbd.start();
     logic.start();
+    mobLogic.start();
     display.start();
 
     while (1)

@@ -23,6 +23,13 @@ struct GameData
     int lives;
     bool gameOver;
 
+    // Goomba State
+    int goombaX;
+    int goombaY;
+    bool goombaActive;
+
+    Semaphore run_mob;
+    bool resetGoomba;
     Semaphore lock;
     PortSerie ps;
 };
