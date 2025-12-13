@@ -7,6 +7,10 @@ INPUT_IMAGE = r"sprites\NES - Super Mario Bros. Text.png"
 INPUT_PALETTE = r"support\vga\atari-8-bit-family-gtia.pal"
 OUTPUT_HEADER = r"sprites\spritesText.h"
 VAR_NAME = "level_sprite_indices"
+TILE_WIDTH = 8
+TILE_HEIGHT = 8
+GAP_X = 1
+GAP_Y = 1
 
 # ---------------------------------------------------------
 # 1. Logique de lecture de palette (adapté de palette.py)
@@ -96,28 +100,47 @@ def generate_indexed_sprite():
         f.write(f"#ifndef LEVEL_DATA_INDEXED_H\n#define LEVEL_DATA_INDEXED_H\n\n")
         f.write(f"// Généré à partir de : {INPUT_IMAGE}\n")
         f.write(f"// Palette utilisée   : {INPUT_PALETTE}\n\n")
-        f.write(f"const int LEVEL_WIDTH = {width};\n")
-        f.write(f"const int LEVEL_HEIGHT = {height};\n\n")
+        f.write(f"const int SPRITE_WIDTH = {TILE_WIDTH};\n")
+        f.write(f"const int SPRITE_HEIGHT = {TILE_HEIGHT};\n\n")
         
-        # Tableau 1D d'indices (unsigned char)
-        f.write(f"const unsigned char {VAR_NAME}[] = {{\n")
+        cols = (width + GAP_X) // (TILE_WIDTH + GAP_X)
+        rows = (height + GAP_Y) // (TILE_HEIGHT + GAP_Y)
+        sprite_names = []
 
-        for y in range(height):
-            line_indices = []
-            for x in range(width):
-                pixel = pixels[x, y] 
-                index = get_nearest_color_index(pixel, atari_palette, color_cache)
-                line_indices.append(f"{index}")
-            
-            # Écrire la ligne
-            f.write("    " + ", ".join(line_indices))
-            
-            if y < height - 1:
-                f.write(",\n")
-            else:
-                f.write("\n")
+        for r in range(rows):
+            for c in range(cols):
+                sprite_name = f"{VAR_NAME}_{len(sprite_names)}"
+                sprite_names.append(sprite_name)
+                f.write(f"const unsigned char {sprite_name}[] = {{\n")
+                
+                for y in range(TILE_HEIGHT):
+                    line_indices = []
+                    for x in range(TILE_WIDTH):
+                        px = c * (TILE_WIDTH + GAP_X) + x
+                        py = r * (TILE_HEIGHT + GAP_Y) + y
+                        if px < width and py < height:
+                            pixel = pixels[px, py]
+                            index = get_nearest_color_index(pixel, atari_palette, color_cache)
+                            if index == 121:
+                                index = 0
+                            line_indices.append(f"{index}")
+                        else:
+                            line_indices.append("0")
+                    f.write("    " + ", ".join(line_indices))
+                    if y < TILE_HEIGHT - 1:
+                        f.write(",\n")
+                    else:
+                        f.write("\n")
+                f.write("};\n\n")
         
-        f.write("};\n\n#endif")
+        # Tableau de pointeurs
+        f.write(f"const unsigned char* {VAR_NAME}[] = {{\n")
+        for name in sprite_names:
+            f.write(f"    {name},\n")
+        f.write("};\n\n")
+        
+        f.write(f"const int {VAR_NAME}_COUNT = {len(sprite_names)};\n")
+        f.write("#endif")
         
     print(f"Terminé ! Fichier généré : {OUTPUT_HEADER}")
 
