@@ -27,7 +27,7 @@ public:
      */
     GameDisplay(GameData *data);
     void run() override;
-    void afficherHUD(bool init = false);
+    void afficherHUD(int oldscrollX, bool init = false);
 };
 
 #endif

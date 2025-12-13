@@ -32,12 +32,12 @@ void GameDisplay::run()
                         oldX, oldY);
 
     display.set_offset(oldScrollX, 0);
-    afficherHUD(true);
+    afficherHUD(oldScrollX, true);
 
     while (true)
     {
         g->lock.P();
-        g->ps.ecrireMot("[GameDisplay] Locked in loop\n");
+        // g->ps.ecrireMot("[GameDisplay] Locked in loop\n");
         if (oldX != g->marioX || oldY != g->marioY)
         {
             display.plot_moving_sprite(g->marioSprite,
@@ -48,15 +48,16 @@ void GameDisplay::run()
             oldX = g->marioX;
             oldY = g->marioY;
             display.set_offset(g->scrollX, 0);
+            afficherHUD(oldScrollX, false);
             oldScrollX = g->scrollX;
         }
         g->lock.V();
-        g->ps.ecrireMot("[GameDisplay] Unlocked in loop\n");
+        // g->ps.ecrireMot("[GameDisplay] Unlocked in loop\n");
         thread_yield();
     }
 }
 
-void GameDisplay::afficherHUD(bool init)
+void GameDisplay::afficherHUD(int oldscrollX, bool init)
 {
     // Implémentation de l'affichage du HUD
     // Le HUD commence à la position (30, 30) de l'écran affiché (/= VRAM)
@@ -65,6 +66,7 @@ void GameDisplay::afficherHUD(bool init)
     // Calcul de la position du HUD dans la VRAM en fonction du scrollX
     int hudX = 30 + g->scrollX;
     int hudY = 30;
+    int oldHudX = 30 + oldscrollX;
 
     // créer le sprite marioText en concaténant les sprites des lettres M A R I O
     const unsigned char *marioText = createWordFromSpritesText(
@@ -82,6 +84,14 @@ void GameDisplay::afficherHUD(bool init)
 
         // Affichage du mot "MARIO"
         display.plot_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT, hudX, hudY);
+    }
+    else
+    {
+        // g->ps.ecrireMot("[GameDisplay] Updating HUD\n");
+        display.plot_moving_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
+                                   hudX, hudY,
+                                   oldHudX, hudY,
+                                   level_sprite_indices);
     }
 }
 
