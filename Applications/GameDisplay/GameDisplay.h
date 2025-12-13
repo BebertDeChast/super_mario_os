@@ -19,6 +19,7 @@ class GameDisplay : public Threads
     EcranBochs display;
 
     const unsigned char *createWordFromSpritesText(const unsigned char *letters[], int length);
+    const unsigned char *createNumberFromSpritesText(int number, int digits);
 
 public:
     /**

@@ -19,13 +19,13 @@ void GameDisplay::run()
     display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
 
     g->lock.P();
-    g->ps.ecrireMot("[GameDisplay] Locked\n");
+    // g->ps.ecrireMot("[GameDisplay] Locked\n");
     int oldX = g->marioX;
     int oldY = g->marioY;
     int oldScrollX = g->scrollX;
     unsigned char *initSprite = g->marioSprite;
     g->lock.V();
-    g->ps.ecrireMot("[GameDisplay] Unlocked\n");
+    // g->ps.ecrireMot("[GameDisplay] Unlocked\n");
 
     display.plot_sprite(initSprite,
                         MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
@@ -60,13 +60,13 @@ void GameDisplay::run()
 void GameDisplay::afficherHUD(int oldscrollX, bool init)
 {
     // Implémentation de l'affichage du HUD
-    // Le HUD commence à la position (30, 30) de l'écran affiché (/= VRAM)
+    // Le HUD commence à la position (25, 15) de l'écran affiché (/= VRAM)
     // il affiche le mot "MARIO" puis le score sur 6 chiffres en dessous
 
     // Calcul de la position du HUD dans la VRAM en fonction du scrollX
-    int hudX = 30 + g->scrollX;
-    int hudY = 30;
-    int oldHudX = 30 + oldscrollX;
+    int hudX = 25 + g->scrollX;
+    int hudY = 15;
+    int oldHudX = 25 + oldscrollX;
 
     // créer le sprite marioText en concaténant les sprites des lettres M A R I O
     const unsigned char *marioText = createWordFromSpritesText(
@@ -78,12 +78,17 @@ void GameDisplay::afficherHUD(int oldscrollX, bool init)
             spriteO},
         5);
 
+    // Affichage du score en dessous de "MARIO"
+    const unsigned char *scoreText = createNumberFromSpritesText(g->score, 6);
+
     if (init)
     {
         g->ps.ecrireMot("[GameDisplay] Initializing HUD\n");
 
         // Affichage du mot "MARIO"
         display.plot_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT, hudX, hudY);
+        // Affichage du score
+        display.plot_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT, hudX, hudY + SPRITE_TEXT_HEIGHT);
     }
     else
     {
@@ -92,9 +97,17 @@ void GameDisplay::afficherHUD(int oldscrollX, bool init)
                                    hudX, hudY,
                                    oldHudX, hudY,
                                    level_sprite_indices);
+        display.plot_moving_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT,
+                                   hudX, hudY + SPRITE_TEXT_HEIGHT,
+                                   oldHudX, hudY + SPRITE_TEXT_HEIGHT,
+                                   level_sprite_indices);
     }
 }
 
+/* Creates a sprite representing a word by concatenating the corresponding letter sprites.
+    The function takes an array of letter sprites and the length of the word.
+    The resulting sprite is stored in a static array and returned.
+*/
 const unsigned char *GameDisplay::createWordFromSpritesText(const unsigned char *letters[], int length)
 {
     static unsigned char word[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 20];
@@ -110,4 +123,41 @@ const unsigned char *GameDisplay::createWordFromSpritesText(const unsigned char 
         }
     }
     return (const unsigned char *)word;
+}
+
+/* Creates a sprite representing a number with a fixed number of digits
+    by concatenating the corresponding digit sprites.
+    If the number has fewer digits than specified, it is padded with leading zeros.
+    For example, createNumberFromSpritesText(42, 5) will create a sprite for "00042".
+    The function uses the digit sprites defined in spritesText.h.
+    The resulting sprite is stored in a static array and returned.
+*/
+const unsigned char *GameDisplay::createNumberFromSpritesText(int number, int digits)
+{
+    static unsigned char numberSprite[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 20]; // Max 20 digits
+    const unsigned char *digitSprites[10] = {
+        sprite0, sprite1, sprite2, sprite3, sprite4,
+        sprite5, sprite6, sprite7, sprite8, sprite9};
+
+    // Convert number to string with leading zeros
+    char numStr[20];
+    for (int i = digits - 1; i >= 0; i--)
+    {
+        numStr[i] = (number % 10) + '0';
+        number /= 10;
+    }
+
+    int index = 0;
+    for (int y = 0; y < SPRITE_TEXT_HEIGHT; y++)
+    {
+        for (int i = 0; i < digits; i++)
+        {
+            int digit = numStr[i] - '0'; // Convert char to int
+            for (int x = 0; x < SPRITE_TEXT_WIDTH; x++)
+            {
+                numberSprite[index++] = digitSprites[digit][y * SPRITE_TEXT_WIDTH + x];
+            }
+        }
+    }
+    return (const unsigned char *)numberSprite;
 }
