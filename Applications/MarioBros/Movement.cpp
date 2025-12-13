@@ -8,9 +8,9 @@ namespace {
     const int JUMP_FORCE = -17; 
     
     // Inertie et Vitesse
-    const int MAX_SPEED = 200;     
-    const int ACCEL = 4;           
-    const int FRICTION = 2;
+    const int MAX_SPEED = 6;     
+    const int ACCEL = 1;           
+    const int FRICTION = 1;
     const int MAX_FALL_SPEED = 12;
     
     const int TILE_SIZE = 16;
