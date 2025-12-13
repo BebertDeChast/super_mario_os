@@ -16,6 +16,10 @@
 class GameDisplay : public Threads
 {
     GameData *g;
+    EcranBochs display;
+
+    const unsigned char *createWordFromSpritesText(const unsigned char *letters[], int length);
+    const unsigned char *createNumberFromSpritesText(int number, int digits);
 
 public:
     /**
@@ -24,6 +28,7 @@ public:
      */
     GameDisplay(GameData *data);
     void run() override;
+    void afficherHUD(int oldscrollX, bool init = false);
 };
 
 #endif

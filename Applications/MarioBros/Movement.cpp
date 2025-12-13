@@ -1,5 +1,5 @@
 #include "Applications/MarioBros/Movement.h"
-#include "Applications/Level/LevelCollision.h"
+#include "Applications/Gamedisplay/LevelCollision.h"
 #include "sextant/sprite.h"
 
 namespace {

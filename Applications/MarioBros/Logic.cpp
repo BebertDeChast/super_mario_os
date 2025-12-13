@@ -38,7 +38,7 @@ void LogicThread::run() {
     while(true) {
         render_next_frame.P();
         kbdData->lock.P();
-        data->ps.ecrireMot("[Logic] Locked KeyboardData\n");
+        // data->ps.ecrireMot("[Logic] Locked KeyboardData\n");
         bool wLeft = kbdData->wantLeft;
         bool wRight = kbdData->wantRight;
         bool wJump = kbdData->wantJump;
@@ -48,10 +48,10 @@ void LogicThread::run() {
         kbdData->wantRight = false;
         kbdData->wantJump = false;
         kbdData->lock.V();
-        data->ps.ecrireMot("[Logic] Unlocked KeyboardData\n");
+        // data->ps.ecrireMot("[Logic] Unlocked KeyboardData\n");
         
         data->lock.P();
-        data->ps.ecrireMot("[Logic] Locked GameData\n");
+        // data->ps.ecrireMot("[Logic] Locked GameData\n");
         int mx = data->marioX;
         int my = data->marioY;
         int sx = data->scrollX;
@@ -62,7 +62,7 @@ void LogicThread::run() {
         int gy = data->goombaY;
         bool gActive = data->goombaActive;
         data->lock.V();
-        data->ps.ecrireMot("[Logic] Unlocked GameData\n");
+        // data->ps.ecrireMot("[Logic] Unlocked GameData\n");
         
         if (invincibilityTimer > 0) {
             invincibilityTimer--;
@@ -105,14 +105,14 @@ void LogicThread::run() {
         }
 
         data->lock.P();
-        data->ps.ecrireMot("[Logic] Locked GameData\n");
+        // data->ps.ecrireMot("[Logic] Locked GameData\n");
         data->marioX = mx;
         data->marioY = my;
         data->scrollX = sx;
         data->scrollY = sy;
         data->marioSprite = mSprite;
         data->lock.V();
-        data->ps.ecrireMot("[Logic] Unlocked GameData\n");
+        // data->ps.ecrireMot("[Logic] Unlocked GameData\n");
         
         thread_yield();
     }

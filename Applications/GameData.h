@@ -7,6 +7,8 @@
 
 struct GameData
 {
+    bool showWelcomeScreen;
+
     // Game State (Written by Logic, Read by Display)
     int marioX;
     int marioY;
@@ -14,6 +16,12 @@ struct GameData
     int scrollY;
     // pointeur vers le sprite Mario (droit ou gauche)
     unsigned char *marioSprite;
+
+    // HUD
+    bool showHUD;
+    int score;
+    int lives;
+    bool gameOver;
 
     // Goomba State
     int goombaX;
