@@ -32,8 +32,12 @@ bool LogicThread::checkCollision(int x1, int y1, int w1, int h1, int x2, int y2,
 void LogicThread::run() {
     data->ps.ecrireMot("[Logic] Starting ...\n");
     
-    lives = 3;
+    data->lives = 3;
     invincibilityTimer = 0;
+
+    data->lock.P();
+    data->score = 0;
+    data->lock.V();
 
     while(true) {
         render_next_frame.P();
@@ -66,7 +70,35 @@ void LogicThread::run() {
         }
 
         int prevMy = my; // Capture previous Y to detect falling direction
-        update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump);
+        if (update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump)) {
+            data->ps.ecrireMot("[Logic] Mario fell in a hole!\n");
+            data->lives--;
+
+            if (data->lives <= 0) {
+                data->ps.ecrireMot("[Logic] GAME OVER\n");
+                data->gameOver = true;
+                thread_exit();
+            } else {
+                resetMarioPosition();
+                data->lock.P();
+                data->resetGoomba = true;
+                data->lock.V();
+                
+                mx = 50;
+                my = 180;
+                sx = 0;
+                sy = 0;
+            }
+        }
+
+        // Check for flag (Win condition) - Position approx du drapeau (198 * 16)
+        if (mx >= 3168) {
+            data->ps.ecrireMot("[Logic] YOU WIN!\n");
+            data->lock.P();
+            data->gameFinished = true;
+            data->lock.V();
+            thread_exit();
+        }
 
         // Signal MobLogic to run
         data->run_mob.V();
@@ -90,16 +122,20 @@ void LogicThread::run() {
                         data->lock.P();
                         data->killGoombaIndex = i;
                         data->goombas[i].flat = true;
+                        data->score += 100;
                         data->lock.V();
                         bounce_mario();
                     } else if (invincibilityTimer == 0) {
-                        lives--;
+                        data->lives--;
+                        data->lock.P();
+                        data->lock.V();
                         invincibilityTimer = 50;
                         data->ps.ecrireMot("[Logic] Hit Goomba!\n");
 
-                        if (lives <= 0) {
+                        if (data->lives <= 0) {
                             data->ps.ecrireMot("[Logic] GAME OVER\n");
-                            while(true) thread_yield();
+                            data->gameOver = true;
+                            thread_exit();
                         } else {
                             resetMarioPosition();
                             data->lock.P();

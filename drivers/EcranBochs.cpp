@@ -197,3 +197,16 @@ void EcranBochs::paint_picture(const unsigned char *picture, unsigned int x, uns
         }
     }
 }
+
+void EcranBochs::redraw_background_area(int x, int y, int w, int h, const unsigned char *background)
+{
+    for (unsigned int row = 0; row < h; row++)
+    {
+        ui32_t base = (y + row) * virtualWidth + x;
+        for (unsigned int col = 0; col < w; col++)
+        {
+            ui8_t color = background[base + col];
+            framebuffer[base + col] = color;
+        }
+    }
+}

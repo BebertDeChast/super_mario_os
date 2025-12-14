@@ -12,7 +12,6 @@ class LogicThread : public Threads {
     int width, height;
     
 public:
-    int lives;
     int invincibilityTimer;
     void resetMarioPosition();
     LogicThread(KeyboardData* k, GameData* d, int w, int h);
