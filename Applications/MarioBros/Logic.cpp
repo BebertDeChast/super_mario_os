@@ -58,9 +58,6 @@ void LogicThread::run() {
         int sy = data->scrollY;
         unsigned char *mSprite = data->marioSprite;
         // Read Goomba state for collision
-        int gx = data->goombaX;
-        int gy = data->goombaY;
-        bool gActive = data->goombaActive;
         data->lock.V();
         // data->ps.ecrireMot("[Logic] Unlocked GameData\n");
         
@@ -68,38 +65,55 @@ void LogicThread::run() {
             invincibilityTimer--;
         }
 
+        int prevMy = my; // Capture previous Y to detect falling direction
         update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump);
 
         // Signal MobLogic to run
         data->run_mob.V();
 
-        if (gActive) {
-            
-            // Check collision with Mario
-            // Adjusted hitbox: Mario (x+8, w=16) and Goomba (x+2, w=12) to ignore transparent pixels
-            if (invincibilityTimer == 0 && checkCollision(mx + 8, my + 4, 16, 28, gx + 2, gy + 4, 12, 12)) {
-                lives--;
-                invincibilityTimer = 50; // Increased invincibility time
-                 data->ps.ecrireMot("[Logic] Hit Goomba! Lives left: ");
-                // Simple int to char conversion or just print dots
-                for(int i=0; i<lives; i++) data->ps.ecrireMot("|");
-                data->ps.ecrireMot("\n");
+        // Check collision with all active Goombas
+        for (int i = 0; i < MAX_GOOMBAS; i++) {
+            data->lock.P();
+            bool gActive = data->goombas[i].active;
+            bool gFlat = data->goombas[i].flat;
+            int gx = data->goombas[i].x;
+            int gy = data->goombas[i].y;
+            data->lock.V();
 
-                if (lives <= 0) {
-                    data->ps.ecrireMot("[Logic] GAME OVER\n");
-                    while(true) thread_yield(); // Stop the game
-                } else {
-                    resetMarioPosition();
-                    // Reset Goomba position to avoid spawn-kill loop
-                    data->lock.P();
-                    data->resetGoomba = true;
-                    data->lock.V();
-                    
-                    // Force local variables to reset position immediately
-                    mx = 50;
-                    my = 180;
-                    sx = 0;
-                    sy = 0;
+            if (gActive && !gFlat) {
+                // Check collision with Mario
+                // Adjusted hitbox: Mario (x+8, w=16) and Goomba (x+2, w=12)
+                if (checkCollision(mx + 8, my + 4, 16, 28, gx + 2, gy + 4, 12, 12)) {
+                    // Check for stomp
+                    if (prevMy + 32 <= gy + 12) {
+                        data->ps.ecrireMot("[Logic] Stomped Goomba!\n");
+                        data->lock.P();
+                        data->killGoombaIndex = i;
+                        data->goombas[i].flat = true;
+                        data->lock.V();
+                        bounce_mario();
+                    } else if (invincibilityTimer == 0) {
+                        lives--;
+                        invincibilityTimer = 50;
+                        data->ps.ecrireMot("[Logic] Hit Goomba!\n");
+
+                        if (lives <= 0) {
+                            data->ps.ecrireMot("[Logic] GAME OVER\n");
+                            while(true) thread_yield();
+                        } else {
+                            resetMarioPosition();
+                            data->lock.P();
+                            data->resetGoomba = true;
+                            data->lock.V();
+                            
+                            mx = 50;
+                            my = 180;
+                            sx = 0;
+                            sy = 0;
+                        }
+                    }
+                    // Break after one collision to avoid double hits in same frame
+                    break;
                 }
             }
         }
