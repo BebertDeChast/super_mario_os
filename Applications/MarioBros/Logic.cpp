@@ -66,7 +66,25 @@ void LogicThread::run() {
         }
 
         int prevMy = my; // Capture previous Y to detect falling direction
-        update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump);
+        
+        // Si update_mario_position renvoie true, c'est que Mario est tombé dans un trou
+        if (update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump, &data->ps)) {
+            lives--;
+            invincibilityTimer = 50; // Protection temporaire au respawn
+            data->ps.ecrireMot("[Logic] Fell in hole!\n");
+
+            if (lives <= 0) {
+                data->ps.ecrireMot("[Logic] GAME OVER\n");
+                while(true) thread_yield();
+            } else {
+                resetMarioPosition();
+                data->lock.P();
+                data->resetGoomba = true;
+                data->lock.V();
+                
+                mx = 50; my = 180; sx = 0; sy = 0;
+            }
+        }
 
         // Signal MobLogic to run
         data->run_mob.V();
