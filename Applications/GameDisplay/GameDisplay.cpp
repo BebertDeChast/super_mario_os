@@ -9,7 +9,7 @@
 
 /**
  * @brief Construct a new Game Display:: Game Display object
- * 
+ *
  * @param data a pointer to the shared GameData object
  */
 GameDisplay::GameDisplay(GameData *data) : display(720, 240, LEVEL_WIDTH, VBE_MODE::_8)
@@ -76,13 +76,17 @@ void GameDisplay::run()
             oldY = g->marioY;
             display.set_offset(g->scrollX, 0);
             // render HUD if needed
-            displayHUD(oldScrollX);
+            if (oldScrollX != g->scrollX)
+                displayHUD(oldScrollX);
             oldScrollX = g->scrollX;
         }
         // Render Goombas
-        for(int i=0; i<MAX_GOOMBAS; i++) {
-            if (g->goombas[i].active) {
-                if (oldGoombaX[i] != g->goombas[i].x || oldGoombaY[i] != g->goombas[i].y || oldGoombaSprite[i] != g->goombas[i].sprite) {
+        for (int i = 0; i < MAX_GOOMBAS; i++)
+        {
+            if (g->goombas[i].active)
+            {
+                if (oldGoombaX[i] != g->goombas[i].x || oldGoombaY[i] != g->goombas[i].y || oldGoombaSprite[i] != g->goombas[i].sprite)
+                {
                     display.plot_moving_sprite(g->goombas[i].sprite,
                                                GOOMBA_WIDTH, GOOMBA_HEIGHT,
                                                g->goombas[i].x, g->goombas[i].y,
@@ -93,15 +97,11 @@ void GameDisplay::run()
                     oldGoombaSprite[i] = g->goombas[i].sprite;
                 }
                 wasGoombaActive[i] = true;
-            } else if (wasGoombaActive[i]) {
+            }
+            else if (wasGoombaActive[i])
+            {
                 // Erase if it just became inactive
-                display.plot_moving_sprite(oldGoombaSprite[i],
-                                           GOOMBA_WIDTH, GOOMBA_HEIGHT,
-                                           -100, -100,
-                                           oldGoombaX[i], oldGoombaY[i],
-                                           level_sprite_indices);
-                oldGoombaX[i] = -100;
-                oldGoombaY[i] = -100;
+                display.redraw_background_area(oldGoombaX[i], oldGoombaY[i], GOOMBA_WIDTH, GOOMBA_HEIGHT, level_sprite_indices);
                 wasGoombaActive[i] = false;
             }
         }
@@ -197,7 +197,7 @@ void GameDisplay::displayHUD(int oldscrollX)
                                level_sprite_indices);
 }
 
-/** 
+/**
  * @brief Creates a sprite representing a word by concatenating the corresponding letter sprites.
  * The function takes an array of letter sprites and the length of the word.
  * The resulting sprite is stored in the provided buffer.
@@ -220,7 +220,7 @@ void GameDisplay::createWordFromSpritesText(unsigned char *buffer, const unsigne
     }
 }
 
-/** 
+/**
  * @brief Creates a sprite representing a number with a fixed number of digits
  * by concatenating the corresponding digit sprites.
  * If the number has fewer digits than specified, it is padded with leading zeros.
@@ -269,6 +269,7 @@ void GameDisplay::displayGameOver()
     // Implementation of the Game Over screen display
     // Black screen with "GAME OVER" text in the center
     display.clear(0); // Clear the screen with black color (index 0)
+    display.set_offset(0, 0);
     // Create the "GAME OVER" sprite
     static unsigned char gameOverText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 10];
     createWordFromSpritesText(gameOverText,
