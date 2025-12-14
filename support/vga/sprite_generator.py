@@ -6,10 +6,10 @@ import math
 # Configuration
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-INPUT_IMAGE = BASE_DIR / "sprites" / "NES - Super Mario Bros. - Stages - World 1-1.png"
+INPUT_IMAGE = BASE_DIR / "sprites" / "NES - Super Mario Bros.Title Screen.png" 
 INPUT_PALETTE = BASE_DIR / "support" / "vga" / "atari-8-bit-family-gtia.pal"
-OUTPUT_HEADER = BASE_DIR / "Applications" / "Level" / "Level_display_data.h"
-VAR_NAME = "level_sprite_indices"
+OUTPUT_HEADER = BASE_DIR / "sprites" / "TitleScreenSprite.h"
+VAR_NAME = "title_screen_sprite"
 
 # ---------------------------------------------------------
 # 1. Logique de lecture de palette (adapté de palette.py)

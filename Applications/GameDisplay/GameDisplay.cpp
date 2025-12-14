@@ -20,7 +20,6 @@ void GameDisplay::run()
     display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
 
     g->lock.P();
-    // g->ps.ecrireMot("[GameDisplay] Locked\n");
     int oldX = g->marioX;
     int oldY = g->marioY;
     int oldScrollX = g->scrollX;
@@ -29,19 +28,24 @@ void GameDisplay::run()
     int oldGoombaY = g->goombaY;
 
     g->lock.V();
-    // g->ps.ecrireMot("[GameDisplay] Unlocked\n");
 
     display.plot_sprite(initSprite,
                         MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
                         oldX, oldY);
 
     display.set_offset(oldScrollX, 0);
-    afficherHUD(oldScrollX, true);
 
     while (true)
     {
         g->lock.P();
-        // g->ps.ecrireMot("[GameDisplay] Locked in loop\n");
+
+        if (g->gameOver)
+        {
+            g->lock.V();
+            afficherGameOver();
+            continue;
+        }
+
         if (oldX != g->marioX || oldY != g->marioY)
         {
             display.plot_moving_sprite(g->marioSprite,
@@ -52,12 +56,15 @@ void GameDisplay::run()
             oldX = g->marioX;
             oldY = g->marioY;
             display.set_offset(g->scrollX, 0);
-            afficherHUD(oldScrollX, false);
+            // render HUD if needed
+            afficherHUD(oldScrollX);
             oldScrollX = g->scrollX;
         }
         // Render Goomba
-        if (g->goombaActive) {
-            if (oldGoombaX != g->goombaX || oldGoombaY != g->goombaY) {
+        if (g->goombaActive)
+        {
+            if (oldGoombaX != g->goombaX || oldGoombaY != g->goombaY)
+            {
                 display.plot_moving_sprite(goombaSpriteData,
                                            GOOMBA_WIDTH, GOOMBA_HEIGHT,
                                            g->goombaX, g->goombaY,
@@ -69,12 +76,11 @@ void GameDisplay::run()
         }
 
         g->lock.V();
-        // g->ps.ecrireMot("[GameDisplay] Unlocked in loop\n");
         thread_yield();
     }
 }
 
-void GameDisplay::afficherHUD(int oldscrollX, bool init)
+void GameDisplay::afficherHUD(int oldscrollX)
 {
     // Implémentation de l'affichage du HUD
     // Le HUD commence à la position (25, 15) de l'écran affiché (/= VRAM)
@@ -91,76 +97,67 @@ void GameDisplay::afficherHUD(int oldscrollX, bool init)
     int hudRightX = 720 - Xmargin + g->scrollX;
     int oldHudRightX = 720 - Xmargin + oldscrollX;
 
+    // Buffers for sprites
+    static unsigned char marioText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 5];
+    static unsigned char scoreText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 6];
+    static unsigned char livesText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 5];
+    static unsigned char livesNumberText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 2];
+
     // Création du sprite "MARIO"
-    const unsigned char *marioText = createWordFromSpritesText(
-        (const unsigned char *[]){
-            spriteM,
-            spriteA,
-            spriteR,
-            spriteI,
-            spriteO},
-        5);
+    createWordFromSpritesText(marioText,
+                              (const unsigned char *[]){
+                                  spriteM,
+                                  spriteA,
+                                  spriteR,
+                                  spriteI,
+                                  spriteO},
+                              5);
 
     // Création du sprite du score sur 6 chiffres
-    const unsigned char *scoreText = createNumberFromSpritesText(g->score, 6);
+    createNumberFromSpritesText(scoreText, g->score, 6);
 
     // Création du spite "LIVES"
-    const unsigned char *timeText = createWordFromSpritesText(
-        (const unsigned char *[]){
-            spriteL,
-            spriteI,
-            spriteV,
-            spriteE,
-            spriteS},
-        5);
+    createWordFromSpritesText(livesText,
+                              (const unsigned char *[]){
+                                  spriteL,
+                                  spriteI,
+                                  spriteV,
+                                  spriteE,
+                                  spriteS},
+                              5);
 
     // Création du sprite du nombre de vies sur 2 chiffres
-    const unsigned char *livesText = createNumberFromSpritesText(g->lives, 2);
+    createNumberFromSpritesText(livesNumberText, g->lives, 2);
 
     // Affichage du HUD
 
-    if (init)
-    {
-        g->ps.ecrireMot("[GameDisplay] Initializing HUD\n");
+    // Affichage du mot "MARIO" et du score en dessous à gauche
+    display.plot_moving_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
+                               hudX, hudY,
+                               oldHudX, hudY,
+                               level_sprite_indices);
+    display.plot_moving_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT,
+                               hudX, hudY + SPRITE_TEXT_HEIGHT,
+                               oldHudX, hudY + SPRITE_TEXT_HEIGHT,
+                               level_sprite_indices);
 
-        // Affichage du mot "MARIO"
-        display.plot_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT, hudX, hudY);
-        // Affichage du score en dessous de "MARIO"
-        display.plot_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT, hudX, hudY + SPRITE_TEXT_HEIGHT);
-        // Affichage du mot "LIVES" à droite de l'écran
-        display.plot_sprite((void *)timeText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT, hudRightX - SPRITE_TEXT_WIDTH * 5, hudY);
-        // Affichage du nombre de vies en dessous de "LIVES"
-        display.plot_sprite((void *)livesText, SPRITE_TEXT_WIDTH * 2, SPRITE_TEXT_HEIGHT, hudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT);
-    }
-    else
-    {
-        // g->ps.ecrireMot("[GameDisplay] Updating HUD\n");
-        display.plot_moving_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
-                                   hudX, hudY,
-                                   oldHudX, hudY,
-                                   level_sprite_indices);
-        display.plot_moving_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT,
-                                   hudX, hudY + SPRITE_TEXT_HEIGHT,
-                                   oldHudX, hudY + SPRITE_TEXT_HEIGHT,
-                                   level_sprite_indices);
-        display.plot_moving_sprite((void *)timeText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
-                                   hudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
-                                   oldHudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
-                                   level_sprite_indices);
-        display.plot_moving_sprite((void *)livesText, SPRITE_TEXT_WIDTH * 2, SPRITE_TEXT_HEIGHT,
-                                   hudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT,
-                                   oldHudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT,
-                                   level_sprite_indices);
-    }
+    // Affichage du mot "LIVES" et du nombre de vies en dessous à droite
+    display.plot_moving_sprite((void *)livesText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
+                               hudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
+                               oldHudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
+                               level_sprite_indices);
+    display.plot_moving_sprite((void *)livesNumberText, SPRITE_TEXT_WIDTH * 2, SPRITE_TEXT_HEIGHT,
+                               hudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT,
+                               oldHudRightX - SPRITE_TEXT_WIDTH * 2, hudY + SPRITE_TEXT_HEIGHT,
+                               level_sprite_indices);
 }
 
 /* Creates a sprite representing a word by concatenating the corresponding letter sprites.
     The function takes an array of letter sprites and the length of the word.
-    The resulting sprite is stored in a static array and returned.
+    The resulting sprite is stored in the provided buffer.
 */
-const unsigned char *GameDisplay::createWordFromSpritesText(const unsigned char *letters[], int length)
+void GameDisplay::createWordFromSpritesText(unsigned char *buffer, const unsigned char *letters[], int length)
 {
-    static unsigned char word[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 20];
     int index = 0;
     for (int y = 0; y < SPRITE_TEXT_HEIGHT; y++)
     {
@@ -168,23 +165,21 @@ const unsigned char *GameDisplay::createWordFromSpritesText(const unsigned char 
         {
             for (int x = 0; x < SPRITE_TEXT_WIDTH; x++)
             {
-                word[index++] = letters[i][y * SPRITE_TEXT_WIDTH + x];
+                buffer[index++] = letters[i][y * SPRITE_TEXT_WIDTH + x];
             }
         }
     }
-    return (const unsigned char *)word;
 }
 
 /* Creates a sprite representing a number with a fixed number of digits
     by concatenating the corresponding digit sprites.
     If the number has fewer digits than specified, it is padded with leading zeros.
-    For example, createNumberFromSpritesText(42, 5) will create a sprite for "00042".
+    For example, createNumberFromSpritesText(buffer, 42, 5) will create a sprite for "00042".
     The function uses the digit sprites defined in spritesText.h.
-    The resulting sprite is stored in a static array and returned.
+    The resulting sprite is stored in the provided buffer.
 */
-const unsigned char *GameDisplay::createNumberFromSpritesText(int number, int digits)
+void GameDisplay::createNumberFromSpritesText(unsigned char *buffer, int number, int digits)
 {
-    static unsigned char numberSprite[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 20]; // Max 20 digits
     const unsigned char *digitSprites[10] = {
         sprite0, sprite1, sprite2, sprite3, sprite4,
         sprite5, sprite6, sprite7, sprite8, sprite9};
@@ -205,9 +200,36 @@ const unsigned char *GameDisplay::createNumberFromSpritesText(int number, int di
             int digit = numStr[i] - '0'; // Convert char to int
             for (int x = 0; x < SPRITE_TEXT_WIDTH; x++)
             {
-                numberSprite[index++] = digitSprites[digit][y * SPRITE_TEXT_WIDTH + x];
+                buffer[index++] = digitSprites[digit][y * SPRITE_TEXT_WIDTH + x];
             }
         }
     }
-    return (const unsigned char *)numberSprite;
+}
+
+void GameDisplay::afficherGameOver()
+{
+    // Implémentation de l'affichage de l'écran de Game Over
+    // Ecran noir avec le texte "GAME OVER" au centre de l'écran
+    display.clear(0); // Effacer l'écran avec la couleur noire (index 0)
+    // Création du sprite "GAME OVER"
+    static unsigned char gameOverText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 10];
+    createWordFromSpritesText(gameOverText,
+                              (const unsigned char *[]){
+                                  spriteG,
+                                  spriteA,
+                                  spriteM,
+                                  spriteE,
+                                  spriteMINUS,
+                                  spriteO,
+                                  spriteV,
+                                  spriteE,
+                                  spriteR,
+                                  spriteWARNING
+                              },
+                              10);
+    // Affichage du sprite "GAME OVER" au centre de l'écran
+    int centerX = (720 - SPRITE_TEXT_WIDTH * 10) / 2;
+    int centerY = (240 - SPRITE_TEXT_HEIGHT) / 2;
+    display.plot_sprite((void *)gameOverText, SPRITE_TEXT_WIDTH * 10, SPRITE_TEXT_HEIGHT,
+                        centerX, centerY);
 }
