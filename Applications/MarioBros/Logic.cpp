@@ -32,8 +32,12 @@ bool LogicThread::checkCollision(int x1, int y1, int w1, int h1, int x2, int y2,
 void LogicThread::run() {
     data->ps.ecrireMot("[Logic] Starting ...\n");
     
-    lives = 3;
+    data->lives = 3;
     invincibilityTimer = 0;
+
+    data->lock.P();
+    data->score = 0;
+    data->lock.V();
 
     while(true) {
         render_next_frame.P();
@@ -118,16 +122,20 @@ void LogicThread::run() {
                         data->lock.P();
                         data->killGoombaIndex = i;
                         data->goombas[i].flat = true;
+                        data->score += 100;
                         data->lock.V();
                         bounce_mario();
                     } else if (invincibilityTimer == 0) {
-                        lives--;
+                        data->lives--;
+                        data->lock.P();
+                        data->lock.V();
                         invincibilityTimer = 50;
                         data->ps.ecrireMot("[Logic] Hit Goomba!\n");
 
-                        if (lives <= 0) {
+                        if (data->lives <= 0) {
                             data->ps.ecrireMot("[Logic] GAME OVER\n");
-                            while(true) thread_yield();
+                            data->gameOver = true;
+                            thread_exit();
                         } else {
                             resetMarioPosition();
                             data->lock.P();
