@@ -66,24 +66,34 @@ void LogicThread::run() {
         }
 
         int prevMy = my; // Capture previous Y to detect falling direction
-        
-        // Si update_mario_position renvoie true, c'est que Mario est tombé dans un trou
-        if (update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump, &data->ps)) {
-            lives--;
-            invincibilityTimer = 50; // Protection temporaire au respawn
-            data->ps.ecrireMot("[Logic] Fell in hole!\n");
+        if (update_mario_position(mx, my, sx, sy, width, height, mSprite, wLeft, wRight, wJump)) {
+            data->ps.ecrireMot("[Logic] Mario fell in a hole!\n");
+            data->lives--;
 
-            if (lives <= 0) {
+            if (data->lives <= 0) {
                 data->ps.ecrireMot("[Logic] GAME OVER\n");
-                while(true) thread_yield();
+                data->gameOver = true;
+                thread_exit();
             } else {
                 resetMarioPosition();
                 data->lock.P();
                 data->resetGoomba = true;
                 data->lock.V();
                 
-                mx = 50; my = 180; sx = 0; sy = 0;
+                mx = 50;
+                my = 180;
+                sx = 0;
+                sy = 0;
             }
+        }
+
+        // Check for flag (Win condition) - Position approx du drapeau (198 * 16)
+        if (mx >= 3168) {
+            data->ps.ecrireMot("[Logic] YOU WIN!\n");
+            data->lock.P();
+            data->gameFinished = true;
+            data->lock.V();
+            thread_exit();
         }
 
         // Signal MobLogic to run
