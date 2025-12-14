@@ -117,6 +117,12 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
     // Application du mouvement X
     int nextX = x + velocityX;
 
+    // Prevent Mario from going past the end of the level
+    if (nextX > MAP_WIDTH * TILE_SIZE - MARIO_SPRITE_WIDTH) {
+        nextX = MAP_WIDTH * TILE_SIZE - MARIO_SPRITE_WIDTH;
+        velocityX = 0;
+    }
+
     // Collisions X
     if (check_collision(nextX, y, MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT)) {
         velocityX = 0; // On s'arrête net contre un mur
@@ -132,6 +138,11 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
     // Mise à jour Caméra
     if (x > middleScreenX) {
         scrollX = x - (screenWidth / 2 - MARIO_SPRITE_WIDTH);
+    }
+
+    // Stop scrolling at the end of the level
+    if (scrollX > (MAP_WIDTH * TILE_SIZE) - screenWidth) {
+        scrollX = (MAP_WIDTH * TILE_SIZE) - screenWidth;
     }
 
     // 3. PHYSIQUE VERTICALE
