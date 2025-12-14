@@ -5,7 +5,7 @@
 namespace {
     // --- CONSTANTES PHYSIQUES ---
     const int GRAVITY = 1; 
-    const int JUMP_FORCE = -17; 
+    const int JUMP_FORCE = -12; 
     
     // Inertie et Vitesse
     const int MAX_SPEED = 6;     
@@ -176,4 +176,8 @@ void update_mario_position(int& x, int& y, int& scrollX, int& scrollY, int scree
         verticalVelocity = 0;
         velocityX = 0; // Reset inertie si on meurt
     }
+}
+
+void bounce_mario() {
+    verticalVelocity = -8;
 }
