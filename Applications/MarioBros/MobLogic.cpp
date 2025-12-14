@@ -44,7 +44,7 @@ void MobLogic::run() {
         if (data->killGoombaIndex != -1) {
             int idx = data->killGoombaIndex;
             if (idx >= 0 && idx < MAX_GOOMBAS && activeGoombas[idx].active) {
-                activeGoombas[idx].deathTimer = 60; // 1 second flat
+                activeGoombas[idx].deathTimer = 20; // 1/3   second flat
             }
             data->killGoombaIndex = -1;
         }
