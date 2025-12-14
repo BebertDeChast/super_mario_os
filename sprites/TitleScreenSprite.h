@@ -1,11 +1,11 @@
-#ifndef LEVEL_DATA_INDEXED_H
-#define LEVEL_DATA_INDEXED_H
+#ifndef TITLE_SCREEN_SPRITE_H
+#define TITLE_SCREEN_SPRITE_H
 
 // G�n�r� � partir de : F:\gitstuff\super_mario_os\sprites\NES - Super Mario Bros.Title Screen.png
 // Palette utilis�e   : F:\gitstuff\super_mario_os\support\vga\atari-8-bit-family-gtia.pal
 
-const int LEVEL_WIDTH = 120;
-const int LEVEL_HEIGHT = 88;
+const int TITLE_SCREEN_WIDTH = 120;
+const int TITLE_SCREEN_HEIGHT = 88;
 
 const unsigned char title_screen_sprite[] = {
     0, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 0,

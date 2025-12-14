@@ -185,6 +185,9 @@ void EcranBochs::set_offset(ui16_t x, ui16_t y)
     ecrireRegistre(VBE_INDEX::Y_OFFSET, y);
 }
 
+/* Paint a picture onto the framebuffer at position (x, y) with width w and height h.
+   The picture is represented as a 1D array of color indices.
+*/
 void EcranBochs::paint_picture(const unsigned char *picture, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
 {
     for (unsigned int row = 0; row < h; row++)
@@ -193,6 +196,19 @@ void EcranBochs::paint_picture(const unsigned char *picture, unsigned int x, uns
         for (unsigned int col = 0; col < w; col++)
         {
             ui8_t color = picture[row * w + col];
+            framebuffer[base + col] = color;
+        }
+    }
+}
+
+void EcranBochs::redraw_background_area(int x, int y, int w, int h, const unsigned char *background)
+{
+    for (unsigned int row = 0; row < h; row++)
+    {
+        ui32_t base = (y + row) * virtualWidth + x;
+        for (unsigned int col = 0; col < w; col++)
+        {
+            ui8_t color = background[base + col];
             framebuffer[base + col] = color;
         }
     }
