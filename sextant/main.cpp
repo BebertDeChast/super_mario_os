@@ -74,13 +74,14 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     data.scrollX = 0;
     data.scrollY = 0;
     data.marioSprite = marioSpriteData; // Assign the default right-facing sprite
-    
-    for(int i=0; i<MAX_GOOMBAS; i++) {
+
+    for (int i = 0; i < MAX_GOOMBAS; i++)
+    {
         data.goombas[i].active = false;
         data.goombas[i].flat = false;
         data.goombas[i].sprite = goombaSpriteData;
     }
-    
+
     data.resetGoomba = false;
     data.killGoombaIndex = -1;
 

@@ -134,7 +134,7 @@ void EcranBochs::plot_sprite(void *pict, ui16_t width, ui16_t height, ui16_t x, 
         for (ui16_t col = 0; col < width; col++)
         {
             ui8_t color = *pict_ptr++;
-            if (color != 0) // Transparence
+            if (color != 255) // Transparence
             {
                 framebuffer[base + col] = color;
             }
