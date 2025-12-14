@@ -31,6 +31,7 @@ struct GameData
     int score;
     int lives;
     bool gameOver;
+    bool gameFinished;
 
     // Goomba State
     GoombaState goombas[MAX_GOOMBAS];
