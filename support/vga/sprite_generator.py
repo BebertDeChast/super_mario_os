@@ -6,10 +6,11 @@ import math
 # Configuration
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+VAR_NAME = "level_sprite_indices"
 INPUT_IMAGE = BASE_DIR / "sprites" / "NES - Super Mario Bros. - Stages - World 1-1.png"
 INPUT_PALETTE = BASE_DIR / "support" / "vga" / "atari-8-bit-family-gtia.pal"
-OUTPUT_HEADER = BASE_DIR / "Applications" / "Level" / "Level_display_data.h"
-VAR_NAME = "level_sprite_indices"
+OUTPUT_HEADER = BASE_DIR / "sprites" / f"{VAR_NAME}.h"
+
 
 # ---------------------------------------------------------
 # 1. Logique de lecture de palette (adapté de palette.py)
@@ -96,11 +97,11 @@ def generate_indexed_sprite():
     
     with open(OUTPUT_HEADER, "w") as f:
         # En-tête du fichier C++
-        f.write(f"#ifndef LEVEL_DATA_INDEXED_H\n#define LEVEL_DATA_INDEXED_H\n\n")
+        f.write(f"#ifndef {VAR_NAME}_H\n#define {VAR_NAME}_H\n\n")
         f.write(f"// Généré à partir de : {INPUT_IMAGE}\n")
         f.write(f"// Palette utilisée   : {INPUT_PALETTE}\n\n")
-        f.write(f"const int LEVEL_WIDTH = {width};\n")
-        f.write(f"const int LEVEL_HEIGHT = {height};\n\n")
+        f.write(f"const int {VAR_NAME}_WIDTH = {width};\n")
+        f.write(f"const int {VAR_NAME}_HEIGHT = {height};\n\n")
         
         # Tableau 1D d'indices (unsigned char)
         f.write(f"const unsigned char {VAR_NAME}[] = {{\n")
