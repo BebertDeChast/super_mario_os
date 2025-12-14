@@ -6,7 +6,6 @@ import math
 INPUT_IMAGE = r"sprites\NES - Super Mario Bros. Text.png"
 INPUT_PALETTE = r"support\vga\atari-8-bit-family-gtia.pal"
 OUTPUT_HEADER = r"sprites\spritesText.h"
-VAR_NAME = "level_sprite_indices"
 TILE_WIDTH = 8
 TILE_HEIGHT = 8
 GAP_X = 1
@@ -97,20 +96,29 @@ def generate_indexed_sprite():
     
     with open(OUTPUT_HEADER, "w") as f:
         # En-tête du fichier C++
-        f.write(f"#ifndef LEVEL_DATA_INDEXED_H\n#define LEVEL_DATA_INDEXED_H\n\n")
+        f.write(f"#ifndef SPRITESTEXT_H\n#define SPRITESTEXT_H\n\n")
         f.write(f"// Généré à partir de : {INPUT_IMAGE}\n")
         f.write(f"// Palette utilisée   : {INPUT_PALETTE}\n\n")
-        f.write(f"const int SPRITE_WIDTH = {TILE_WIDTH};\n")
-        f.write(f"const int SPRITE_HEIGHT = {TILE_HEIGHT};\n\n")
+        f.write(f"const int SPRITE_TEXT_WIDTH = {TILE_WIDTH};\n")
+        f.write(f"const int SPRITE_TEXT_HEIGHT = {TILE_HEIGHT};\n\n")
         
         cols = (width + GAP_X) // (TILE_WIDTH + GAP_X)
         rows = (height + GAP_Y) // (TILE_HEIGHT + GAP_Y)
-        sprite_names = []
+        
+        sprite_names = [f"sprite{i}" for i in range(10)]
+        sprite_names.extend([f"sprite{chr(ord('A') + i)}" for i in range(26)])
+        sprite_names.extend(["spriteMINUS", "spriteTIMES", "spriteWARNING", "spriteDOT", "spriteCC"])
+        
+        current_sprite_idx = 0
 
         for r in range(rows):
             for c in range(cols):
-                sprite_name = f"{VAR_NAME}_{len(sprite_names)}"
-                sprite_names.append(sprite_name)
+                if current_sprite_idx >= len(sprite_names):
+                    break
+                
+                sprite_name = sprite_names[current_sprite_idx]
+                current_sprite_idx += 1
+                
                 f.write(f"const unsigned char {sprite_name}[] = {{\n")
                 
                 for y in range(TILE_HEIGHT):
@@ -122,10 +130,10 @@ def generate_indexed_sprite():
                             pixel = pixels[px, py]
                             index = get_nearest_color_index(pixel, atari_palette, color_cache)
                             if index == 121:
-                                index = 0
+                                index = 1000
                             line_indices.append(f"{index}")
                         else:
-                            line_indices.append("0")
+                            line_indices.append("1000")
                     f.write("    " + ", ".join(line_indices))
                     if y < TILE_HEIGHT - 1:
                         f.write(",\n")
@@ -133,13 +141,6 @@ def generate_indexed_sprite():
                         f.write("\n")
                 f.write("};\n\n")
         
-        # Tableau de pointeurs
-        f.write(f"const unsigned char* {VAR_NAME}[] = {{\n")
-        for name in sprite_names:
-            f.write(f"    {name},\n")
-        f.write("};\n\n")
-        
-        f.write(f"const int {VAR_NAME}_COUNT = {len(sprite_names)};\n")
         f.write("#endif")
         
     print(f"Terminé ! Fichier généré : {OUTPUT_HEADER}")

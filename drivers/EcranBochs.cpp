@@ -134,7 +134,7 @@ void EcranBochs::plot_sprite(void *pict, ui16_t width, ui16_t height, ui16_t x, 
         for (ui16_t col = 0; col < width; col++)
         {
             ui8_t color = *pict_ptr++;
-            if (color != 0) // Transparence // ! Black is transparent // TODO: make transparent color configurable
+            if (color != 255) // Transparence
             {
                 framebuffer[base + col] = color;
             }
@@ -185,9 +185,6 @@ void EcranBochs::set_offset(ui16_t x, ui16_t y)
     ecrireRegistre(VBE_INDEX::Y_OFFSET, y);
 }
 
-/* Paint a picture onto the framebuffer at position (x, y) with width w and height h.
-   The picture is represented as a 1D array of color indices.
-*/
 void EcranBochs::paint_picture(const unsigned char *picture, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
 {
     for (unsigned int row = 0; row < h; row++)

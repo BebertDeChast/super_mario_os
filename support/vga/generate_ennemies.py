@@ -4,7 +4,7 @@ import sys
 # Configuration
 INPUT_IMAGE = "sprites/NES - Super Mario Bros. - Enemies & Bosses - Enemies & Bosses.png"
 INPUT_PALETTE = "support/vga/atari-8-bit-family-gtia.pal"
-OUTPUT_HEADER = "Applications/MarioBros/GoombaSprite.h"
+OUTPUT_HEADER = "sprites/GoombaSprite.h"
 
 # Coordonnées du Goomba dans l'image (A AJUSTER selon ton image)
 # Astuce : Ouvre l'image dans Paint pour trouver le X,Y du coin haut-gauche du Goomba
@@ -72,7 +72,7 @@ def generate_goomba():
             def write_pixels(pxls):
                 for i, p in enumerate(pxls):
                     if p == bg_color:
-                        val = 0 # Index 0 = Transparent
+                        val = 255 # Index 255 = Transparent
                     elif p in cache:
                         val = cache[p]
                     else:
@@ -80,7 +80,7 @@ def generate_goomba():
                         # Si la couleur la plus proche est 0 (noir/transparent) mais que ce n'est pas le fond,
                         # on force l'index 1 (gris très sombre) pour éviter les trous dans le sprite.
                         if val == 0:
-                            val = 1
+                            val = 0
                         cache[p] = val
 
                     f.write(f"0x{val:02X}, ")
