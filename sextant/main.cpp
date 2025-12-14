@@ -22,6 +22,7 @@
 #include <Applications/MarioBros/Logic.h>
 #include <Applications/MarioBros/MobLogic.h>
 #include <Applications/GameDisplay/GameDisplay.h>
+#include <Applications/MarioBros/GoombaSprite.h>
 
 extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;
@@ -73,10 +74,15 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     data.scrollX = 0;
     data.scrollY = 0;
     data.marioSprite = marioSpriteData; // Assign the default right-facing sprite
-    data.goombaX = 200;
-    data.goombaY = 180;
-    data.goombaActive = true;
+    
+    for(int i=0; i<MAX_GOOMBAS; i++) {
+        data.goombas[i].active = false;
+        data.goombas[i].flat = false;
+        data.goombas[i].sprite = goombaSpriteData;
+    }
+    
     data.resetGoomba = false;
+    data.killGoombaIndex = -1;
 
     ps.ecrireMot("\nStarting MarioBros...\n");
     data.lock.V();

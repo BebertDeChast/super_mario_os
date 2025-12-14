@@ -26,8 +26,19 @@ void GameDisplay::run()
     int oldY = g->marioY;
     int oldScrollX = g->scrollX;
     unsigned char *initSprite = g->marioSprite;
-    int oldGoombaX = g->goombaX;
-    int oldGoombaY = g->goombaY;
+    
+    int oldGoombaX[MAX_GOOMBAS];
+    int oldGoombaY[MAX_GOOMBAS];
+    unsigned char *oldGoombaSprite[MAX_GOOMBAS];
+    bool wasGoombaActive[MAX_GOOMBAS];
+
+    // Initialize local tracking arrays
+    for(int i=0; i<MAX_GOOMBAS; i++) {
+        oldGoombaX[i] = -100;
+        oldGoombaY[i] = -100;
+        oldGoombaSprite[i] = g->goombas[i].sprite;
+        wasGoombaActive[i] = false;
+    }
 
     g->lock.V();
     // g->ps.ecrireMot("[GameDisplay] Unlocked\n");
@@ -35,6 +46,7 @@ void GameDisplay::run()
     display.plot_sprite(initSprite,
                         MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
                         oldX, oldY);
+    
 
     display.set_offset(oldScrollX, 0);
     afficherHUD(oldScrollX, true);
@@ -56,16 +68,30 @@ void GameDisplay::run()
             afficherHUD(oldScrollX, false);
             oldScrollX = g->scrollX;
         }
-        // Render Goomba
-        if (g->goombaActive) {
-            if (oldGoombaX != g->goombaX || oldGoombaY != g->goombaY) {
-                display.plot_moving_sprite(goombaSpriteData,
+        // Render Goombas
+        for(int i=0; i<MAX_GOOMBAS; i++) {
+            if (g->goombas[i].active) {
+                if (oldGoombaX[i] != g->goombas[i].x || oldGoombaY[i] != g->goombas[i].y || oldGoombaSprite[i] != g->goombas[i].sprite) {
+                    display.plot_moving_sprite(g->goombas[i].sprite,
+                                               GOOMBA_WIDTH, GOOMBA_HEIGHT,
+                                               g->goombas[i].x, g->goombas[i].y,
+                                               oldGoombaX[i], oldGoombaY[i],
+                                               level_sprite_indices);
+                    oldGoombaX[i] = g->goombas[i].x;
+                    oldGoombaY[i] = g->goombas[i].y;
+                    oldGoombaSprite[i] = g->goombas[i].sprite;
+                }
+                wasGoombaActive[i] = true;
+            } else if (wasGoombaActive[i]) {
+                // Erase if it just became inactive
+                display.plot_moving_sprite(oldGoombaSprite[i],
                                            GOOMBA_WIDTH, GOOMBA_HEIGHT,
-                                           g->goombaX, g->goombaY,
-                                           oldGoombaX, oldGoombaY,
+                                           -100, -100,
+                                           oldGoombaX[i], oldGoombaY[i],
                                            level_sprite_indices);
-                oldGoombaX = g->goombaX;
-                oldGoombaY = g->goombaY;
+                oldGoombaX[i] = -100;
+                oldGoombaY[i] = -100;
+                wasGoombaActive[i] = false;
             }
         }
 

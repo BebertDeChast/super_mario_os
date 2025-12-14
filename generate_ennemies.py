@@ -12,6 +12,9 @@ GOOMBA_X = 0
 GOOMBA_Y = 16
 WIDTH = 16
 HEIGHT = 16
+GOOMBA_FLAT_X = 36
+GOOMBA_FLAT_Y = 19
+GOOMBA_FLAT_HEIGHT = 16
 
 def parse_jasc(filename):
     try:
@@ -52,6 +55,8 @@ def generate_goomba():
         sprite = img.crop((GOOMBA_X, GOOMBA_Y, GOOMBA_X + WIDTH, GOOMBA_Y + HEIGHT))
         
         pixels = list(sprite.getdata())
+        sprite_flat = img.crop((GOOMBA_FLAT_X, GOOMBA_FLAT_Y, GOOMBA_FLAT_X + WIDTH, GOOMBA_FLAT_Y + GOOMBA_FLAT_HEIGHT))
+        pixels_flat = list(sprite_flat.getdata())
         
         # On suppose que le pixel en haut à gauche (0,0) est la couleur de fond (transparence)
         bg_color = pixels[0]
@@ -63,23 +68,31 @@ def generate_goomba():
             f.write("static unsigned char goombaSpriteData[] = {\n")
             
             cache = {}
-            for i, p in enumerate(pixels):
-                if p == bg_color:
-                    val = 0 # Index 0 = Transparent
-                elif p in cache:
-                    val = cache[p]
-                else:
-                    val = get_nearest_color_index(p, palette)
-                    # Si la couleur la plus proche est 0 (noir/transparent) mais que ce n'est pas le fond,
-                    # on force l'index 1 (gris très sombre) pour éviter les trous dans le sprite.
-                    if val == 0:
-                        val = 1
-                    cache[p] = val
-
-                f.write(f"0x{val:02X}, ")
-                if (i + 1) % 16 == 0:
-                    f.write("\n")
             
+            def write_pixels(pxls):
+                for i, p in enumerate(pxls):
+                    if p == bg_color:
+                        val = 0 # Index 0 = Transparent
+                    elif p in cache:
+                        val = cache[p]
+                    else:
+                        val = get_nearest_color_index(p, palette)
+                        # Si la couleur la plus proche est 0 (noir/transparent) mais que ce n'est pas le fond,
+                        # on force l'index 1 (gris très sombre) pour éviter les trous dans le sprite.
+                        if val == 0:
+                            val = 1
+                        cache[p] = val
+
+                    f.write(f"0x{val:02X}, ")
+                    if (i + 1) % 16 == 0:
+                        f.write("\n")
+            
+            write_pixels(pixels)
+            
+            f.write("};\n\n")
+            
+            f.write("static unsigned char goombaFlatSpriteData[] = {\n")
+            write_pixels(pixels_flat)
             f.write("};\n\n#endif")
             
         print(f"Sprite généré : {OUTPUT_HEADER}")

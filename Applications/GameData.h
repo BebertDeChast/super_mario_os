@@ -5,6 +5,15 @@
 #include <sprites/MarioSprites.h>
 #include <drivers/PortSerie.h>
 
+#define MAX_GOOMBAS 20
+
+struct GoombaState {
+    int x, y;
+    bool active;
+    bool flat;
+    unsigned char *sprite;
+};
+
 struct GameData
 {
     bool showWelcomeScreen;
@@ -24,12 +33,11 @@ struct GameData
     bool gameOver;
 
     // Goomba State
-    int goombaX;
-    int goombaY;
-    bool goombaActive;
+    GoombaState goombas[MAX_GOOMBAS];
 
     Semaphore run_mob;
     bool resetGoomba;
+    int killGoombaIndex; // -1 if none
     Semaphore lock;
     PortSerie ps;
 };
