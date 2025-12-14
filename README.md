@@ -1,129 +1,94 @@
+# Super Mario OS
+
 ![Super Mario Bros](https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/6e64b8f7-82f5-47e5-9319-e2e69ca6f56d/d9f6x59-83bc7697-99b5-4ab1-b56c-48286f982b2b.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiIvZi82ZTY0YjhmNy04MmY1LTQ3ZTUtOTMxOS1lMmU2OWNhNmY1NmQvZDlmNng1OS04M2JjNzY5Ny05OWI1LTRhYjEtYjU2Yy00ODI4NmY5ODJiMmIuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.mnTmFaDVNoVFe89N6uVgroG2RosfYFWHRAjuRqImtII)
 
-# Super Mario Bros
+## Overview
 
-## VGA Integration
+Super Mario OS is a 32-bit educational operating system built from scratch. It is a **unikernel**, meaning the application (a Super Mario Bros. game) is compiled directly with the kernel into a single executable. The core of the OS is named "Sextant".
 
-In this zip file you will find two VGA drivers you can use for your project.
-The first one (`vga.c` and `vga.h`), will permit to switch to [VGA mode](https://en.wikipedia.org/wiki/Mode_13h) (320x200, 256 colors), set a palette and plot imported sprites.
-The second one, Bochs Driver, enables a more powerful [graphic backend](https://wiki.osdev.org/Bochs_VBE_Extensions) with configurable screen size and color depth (from 8 bits per pixel to 32). 8 bit depth use the same palette logic as the VGA driver, 15 bits and more give you access to direct RGB color.
+The primary goal of this project is to demonstrate fundamental OS concepts, such as:
+- Preemptive multitasking
+- Memory management
+- Hardware drivers
+- Synchronization primitives (Mutex, Semaphores)
+- Concurrency
 
-If you plan to use 4 or 8 bits palettes the next sections are the same between the two drivers.
+## Project Structure
 
-### Palette array integration
+The codebase is organized into the following directories:
 
-Palette is the way to set custom colors in mode. For VGA each of the 256 colors can be set to a given 0-63 value (6 bits) for RGB, thus summing up to 262144 potential colors. Using the right palette is mandatory to draw faithfully a sprite. It can be changed at runtime.
+-   `sextant/`: Contains the core kernel "Sextant".
+    -   `ordonnancements/`: The preemptive Round-Robin scheduler.
+    -   `memoire/`: A basic memory manager.
+    -   `interruptions/`: Interrupt handling (IDT, IRQ).
+    -   `Synchronisation/`: Mutex, Semaphore, and Spinlock implementations.
+-   `drivers/`: Hardware drivers for the keyboard, timer, serial port, VGA, and Bochs VBE for higher-resolution graphics.
+-   `hal/`: The Hardware Abstraction Layer, which includes low-level boot code (`multiboot.S`), port I/O functions, and PCI bus scanning.
+-   `Applications/`: The Super Mario Bros. game logic. As a unikernel, this is the only application.
+-   `sprites/`: Contains the game's graphical assets (sprites, tilesets).
+-   `build/`: Stores the build artifacts, including the final `grub.iso` boot image.
 
-The example palette `palette_vga` in [sprite.cpp](support/vga/sprite.cpp) is provided ([atari-8-bit-family-gtia.pal](support/vga/atari-8-bit-family-gtia.pal) file) but of course you can change it.
+## How it Works
 
-```bash
-python support/vga/palette.py atari-8-bit-family-gtia.pal
+### Booting
+The OS is booted using GRUB, following the Multiboot standard.
+
+### Kernel: Sextant
+The "Sextant" kernel provides essential OS services. It uses a preemptive Round-Robin algorithm to schedule threads, allowing multiple tasks to run concurrently.
+
+### The Super Mario Bros. Game
+
+The project culminates in a playable, albeit simplified, version of the classic Super Mario Bros. The game features:
+
+-   **Player Movement**: Mario can run left and right and jump. The physics simulation includes gravity and collision detection against the level map.
+-   **Enemies**: The iconic Goombas are included as the primary enemy. They can be defeated by stomping on them, which is detected by checking the player's vertical velocity and position upon collision.
+-   **Level Design**: The game loads a representation of the famous World 1-1. A Python script (`Applications/MarioBros/level_generator.py`) parses a PNG image of the original level and analyzes its tiles. It then generates a C++ header file (`Applications/Level/LevelCollision.h`) containing a `collision_map` array. This array is used by the game logic for collision detection.
+-   **Scrolling**: The camera smoothly follows Mario's horizontal movement through the level.
+-   **Win/Loss Conditions**: The game is won by reaching the flagpole at the end of the level. A game-over state is triggered if Mario loses all his lives, either by falling into a pit or taking damage from an enemy.
+-   **Sprites**: All graphics for Mario, Goombas, and level tiles are stored as static C++ arrays within header files (e.g., `sprites/MarioSprites.h`, `sprites/GoombaSprite.h`).
+
+### Game Architecture: A Multithreaded Approach
+Instead of a traditional separation between kernel space and user space, Super Mario OS runs the game as a collection of threads directly within the kernel. This simplifies the design and is a classic feature of a unikernel.
+
+The game's logic is divided into four main threads that work together:
+1.  **`KeyboardThread`**: Manages keyboard input from the player.
+2.  **`LogicThread`**: Handles Mario's game logic, including movement, physics, and actions. This thread is the heart of the game, checking for collisions with the level and enemies, and updating the game state.
+3.  **`MobLogic`**: Controls the behavior and state of enemies (mobs). It's responsible for moving the Goombas and checking their state.
+4.  **`GameDisplay`**: Responsible for rendering the game world, including the level, characters, and HUD, to the screen.
+
+These threads communicate and stay synchronized through a shared data structure defined in `Applications/GameData.h`. This structure holds all the critical game state information, such as Mario's position, the score, number of lives, and the state of all enemies. Semaphores are used to prevent race conditions when accessing this shared data.
+
+### Graphics and Rendering
+
+The visual presentation of Super Mario OS is handled by a combination of a dedicated graphics driver, a rendering thread, and a palette-based color system, designed for efficiency.
+
+*   **`EcranBochs` Driver:** The core of the graphics system is the `EcranBochs` driver (`drivers/EcranBochs.cpp`). It uses the [Bochs VBE Extensions](https://wiki.osdev.org/Bochs_VBE_Extensions) to set up a 720x240 graphical mode with 8-bit color depth. The driver configures a large virtual screen in video memory (VRAM) that is wide enough to hold the entire game level.
+
+*   **Palette Color System:** The game operates on an 8-bit (256 colors) palette, a classic technique for retro graphics. This palette is defined in `sprites/palette.h` and loaded into the graphics hardware by the `EcranBochs` driver at startup. All sprites in the game are stored as arrays of bytes, where each byte is an index corresponding to a color in this global palette. The color `0` is treated as transparent.
+
+*   **`GameDisplay` Rendering Thread:** This thread is the game's painter. It runs in a continuous loop, drawing all visual elements to the screen based on the state found in the shared `GameData` structure.
+    *   **Optimized Drawing:** To avoid flickering and the cost of redrawing the entire screen each frame, the `GameDisplay` thread uses an optimized approach. When a sprite (like Mario or a Goomba) moves, the thread first redraws the small portion of the background where the sprite *used* to be, effectively erasing it. It then draws the sprite at its new location. This targeted update is managed by the `plot_moving_sprite` function.
+    *   **Hardware Scrolling:** The entire level background is rendered once to a large off-screen portion of the VRAM at the start of the game. The illusion of a scrolling camera is achieved by instructing the `EcranBochs` driver to change the display's starting offset (`set_offset`). This effectively pans the visible 720x240 window across the larger level map in VRAM, which is a very efficient hardware-accelerated operation.
+    *   **Text Rendering:** There is no traditional font rendering system. Instead, each alphanumeric character is a small, pre-drawn sprite. To display text like the HUD ("MARIO", score, lives), the `GameDisplay` thread dynamically combines these individual character sprites into a larger temporary sprite representing the full string, which is then drawn to the screen.
+
+
+
+## How to Build and Run
+
+### Requirements
+- A 32-bit GCC-compatible toolchain (e.g., `i686-elf-gcc`).
+- `make`
+- `qemu`
+
+### Build
+To compile the kernel and create the bootable ISO image, run:
+```sh
+make
 ```
 
-Then integrated the generated array in your code, and use the function 
-
-### Sprite array integration (with palette)
-
-Sprites are included as unsigned char arrays, of the size of the sprite (ex: 32x32). 
-The [sprite.py](support/vga/sprite.py) script permits to generate the needed array (and potentially palette) from a PNG file (only). 
-It is adviced to use a given palette (as each sprite will share it on the same screen). Origin colors will be quantized at best to 
-
-```bash
-python support/vga/sprite.py file.png -p atari-8-bit-family-gtia.pal # if you are using this palette in your code
+### Run
+To launch the operating system in the QEMU emulator, use the following command:
+```sh
+make run_gui
 ```
-
-Then, include the generated array in your code and use the `draw_sprite` with it.
-
-### Usage in code
-
-Include [vga.h](vga.h) and [sprite.h](sprite.h)
-Copy the necessary arrays for palette and sprites.
-
-Use the following code (for instance on key pressed): 
-```cpp
-set_vga_mode13(); // set VGA mode
-set_palette_vga(palette_vga); // set to given palette
-clear_vga_screen(0); // put the color 0 on each pixel
-plot_square(50, 50, 25, 4); // plot a square of 25 width at 50,50 of color 4
-draw_sprite(sprite_door_data, 32, 32, 100,100); // draw the 32x32 sprite at 100,100
-```
-
-For the Bochs diver use the following snippet:
-
-```c
-// add these includes
-#include <hal/pci.h>
-#include <drivers/EcranBochs.h>
-
-#include "sprite.h"
-
-extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
-    // scan PCI bus to find VRAM address
-    checkBus(0);
-
-    EcranBochs vga(640, 400, VBE_MODE::_8);
-
-    vga.init();
-    vga.clear(0);
-
-    // only usefull in 4 or 8 bits modes
-    vga.set_palette(palette_vga);
-    vga.plot_palette(0, 0, 25);
-
-	int offset = 0;
-	while (true) {
-		vga.clear(1);
-		vga.plot_sprite(sprite_data, SPRITE_WIDTH, SPRITE_HEIGHT, offset, 200);
-		offset = (offset+1) % (640);
-		vga.swapBuffer(); // call this after you finish drawing your frame to display it, it avoids screen tearing
-	}
-}
-```
-
-#### RGB access with Bochs driver
-
-The Bochs drivers allows you to have more than 256 colors and choose custom resolution for your screen.
-
-Here is a example that initializes the screen in 32 bits color depth and plays a simple animation using the `pain(x, y, r, g, b)` function.
-Note that you will need to write the logic to draw sprites yourself (but it's very similar to vga driver).
-
-```c
-#include <hal/multiboot.h>
-#include <hal/pci.h>
-#include <drivers/EcranBochs.h>
-
-#include "sprite.h"
-
-
-extern "C" void Sextant_main(unsigned long magic, unsigned long addr){
-	// scan PCI bus to find VRAM address
-	checkBus(0);
-	EcranBochs vga(640, 400, VBE_MODE::_32);
-
-	vga.init();
-	
-	ui8_t offset = 0;
-	while(true) {
-		
-		for (int y = 0; y < vga.getHeight(); y++) {
-			for (int x = 0; x < vga.getWidth(); x++) {
-				vga.paint(x, y, 
-					(~x << y%3) + offset & y, 
-					~offset * (x & ~y), 
-					offset | (~y < 2 - x % 16));
-			}
-		}
-		++offset;
-	}
-}
-```
-
-#### "Transparent" color
-
-It is assumed in `draw_sprite` that the transparent color (not drawed) is the 255. You can change this at ease. Don't forget to take that into account in your sprites!
-
-### Additional resources
-
-[Palettes](https://lospec.com/palette-list)
-[Pixel editor](https://apps.lospec.com/pixel-editor)
-[Free sprites](https://itch.io/game-assets/free)
+This will start QEMU and boot the Super Mario OS.
