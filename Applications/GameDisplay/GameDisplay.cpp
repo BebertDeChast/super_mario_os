@@ -4,6 +4,7 @@
 #include <sextant/sprite.h> // for palette_vga
 #include <Applications/GameDisplay/spritesText.h>
 #include <Applications/MarioBros/GoombaSprite.h>
+#include <sprites/TitleScreenSprite.h>
 
 GameDisplay::GameDisplay(GameData *data) : display(720, 240, LEVEL_WIDTH, VBE_MODE::_8)
 {
@@ -17,7 +18,8 @@ void GameDisplay::run()
     display.clear(0);
     display.set_palette(palette_vga);
 
-    display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT);
+    display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT); // draw level background
+    afficherWelcomeScreen();
 
     g->lock.P();
     int oldX = g->marioX;
@@ -26,14 +28,15 @@ void GameDisplay::run()
     unsigned char *initSprite = g->marioSprite;
     int oldGoombaX = g->goombaX;
     int oldGoombaY = g->goombaY;
-
     g->lock.V();
 
-    display.plot_sprite(initSprite,
-                        MARIO_SPRITE_WIDTH, MARIO_SPRITE_HEIGHT,
-                        oldX, oldY);
-
     display.set_offset(oldScrollX, 0);
+
+    while (g->showWelcomeScreen)
+    {
+        thread_yield();
+    }
+    removeWelcomeScreen();
 
     while (true)
     {
@@ -224,12 +227,29 @@ void GameDisplay::afficherGameOver()
                                   spriteV,
                                   spriteE,
                                   spriteR,
-                                  spriteWARNING
-                              },
+                                  spriteWARNING},
                               10);
     // Affichage du sprite "GAME OVER" au centre de l'écran
     int centerX = (720 - SPRITE_TEXT_WIDTH * 10) / 2;
     int centerY = (240 - SPRITE_TEXT_HEIGHT) / 2;
     display.plot_sprite((void *)gameOverText, SPRITE_TEXT_WIDTH * 10, SPRITE_TEXT_HEIGHT,
                         centerX, centerY);
+}
+
+void GameDisplay::afficherWelcomeScreen()
+{
+    // Implémentation de l'affichage de l'écran de bienvenue
+    // calcul de la position pour centrer le sprite
+    int centerX = (720 - TITLE_SCREEN_WIDTH) / 2;
+    int centerY = (240 - TITLE_SCREEN_HEIGHT) / 2;
+    display.plot_sprite((void *)title_screen_sprite, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT,
+                        centerX, centerY);
+}
+
+void GameDisplay::removeWelcomeScreen()
+{
+    // Clear the welcome screen by redrawing the background area
+    int centerX = (720 - TITLE_SCREEN_WIDTH) / 2;
+    int centerY = (240 - TITLE_SCREEN_HEIGHT) / 2;
+    display.redraw_background_area(centerX, centerY, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT, level_sprite_indices);
 }

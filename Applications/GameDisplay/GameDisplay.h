@@ -22,6 +22,8 @@ class GameDisplay : public Threads
     void createNumberFromSpritesText(unsigned char *buffer, int number, int digits);
     void afficherHUD(int oldscrollX);
     void afficherGameOver();
+    void afficherWelcomeScreen();
+    void removeWelcomeScreen();
 
 public:
     /**
