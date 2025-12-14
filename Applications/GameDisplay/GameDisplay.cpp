@@ -20,7 +20,7 @@ void GameDisplay::run()
     display.set_palette(palette_vga);
 
     display.paint_picture(level_sprite_indices, 0, 0, LEVEL_WIDTH, LEVEL_HEIGHT); // draw level background
-    afficherWelcomeScreen();
+    displayWelcomeScreen();
 
     g->lock.P();
     int oldX = g->marioX;
@@ -39,16 +39,9 @@ void GameDisplay::run()
     }
     removeWelcomeScreen();
 
-    while (true)
+    while (!g->gameOver)
     {
         g->lock.P();
-
-        if (g->gameOver)
-        {
-            g->lock.V();
-            afficherGameOver();
-            continue;
-        }
 
         if (oldX != g->marioX || oldY != g->marioY)
         {
@@ -61,7 +54,7 @@ void GameDisplay::run()
             oldY = g->marioY;
             display.set_offset(g->scrollX, 0);
             // render HUD if needed
-            afficherHUD(oldScrollX);
+            displayHUD(oldScrollX);
             oldScrollX = g->scrollX;
         }
         // Render Goomba
@@ -82,9 +75,16 @@ void GameDisplay::run()
         g->lock.V();
         thread_yield();
     }
+
+    if (g->gameOver)
+    {
+        displayGameOver();
+        g->ps.ecrireMot("[GameDisplay] Game Over detected, exiting display thread.\n");
+        thread_exit();
+    }
 }
 
-void GameDisplay::afficherHUD(int oldscrollX)
+void GameDisplay::displayHUD(int oldscrollX)
 {
     // Implémentation de l'affichage du HUD
     // Le HUD commence à la position (25, 15) de l'écran affiché (/= VRAM)
@@ -210,7 +210,7 @@ void GameDisplay::createNumberFromSpritesText(unsigned char *buffer, int number,
     }
 }
 
-void GameDisplay::afficherGameOver()
+void GameDisplay::displayGameOver()
 {
     // Implémentation de l'affichage de l'écran de Game Over
     // Ecran noir avec le texte "GAME OVER" au centre de l'écran
@@ -223,7 +223,7 @@ void GameDisplay::afficherGameOver()
                                   spriteA,
                                   spriteM,
                                   spriteE,
-                                  spriteMINUS,
+                                  spriteSPACE,
                                   spriteO,
                                   spriteV,
                                   spriteE,
@@ -235,9 +235,17 @@ void GameDisplay::afficherGameOver()
     int centerY = (240 - SPRITE_TEXT_HEIGHT) / 2;
     display.plot_sprite((void *)gameOverText, SPRITE_TEXT_WIDTH * 10, SPRITE_TEXT_HEIGHT,
                         centerX, centerY);
+    // Score en dessous
+    static unsigned char scoreText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 6];
+    createNumberFromSpritesText(scoreText, g->score, 6);
+    display.plot_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT,
+                        centerX, centerY + SPRITE_TEXT_HEIGHT + 5);
+
+    // Crédit en haut à gauche
+    displayCredits(10, 10);
 }
 
-void GameDisplay::afficherWelcomeScreen()
+void GameDisplay::displayWelcomeScreen()
 {
     // Implémentation de l'affichage de l'écran de bienvenue
     // calcul de la position pour centrer le sprite
@@ -245,6 +253,41 @@ void GameDisplay::afficherWelcomeScreen()
     int centerY = (240 - TITLE_SCREEN_HEIGHT) / 2;
     display.plot_sprite((void *)title_screen_sprite, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT,
                         centerX, centerY);
+
+    // Affichage d'un message "Press any key to start" en haut de l'écran
+    static unsigned char pressKeyText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 22];
+    createWordFromSpritesText(pressKeyText,
+                              (const unsigned char *[]){
+                                  spriteP,
+                                  spriteR,
+                                  spriteE,
+                                  spriteS,
+                                  spriteS,
+                                  spriteSPACE,
+                                  spriteA,
+                                  spriteN,
+                                  spriteY,
+                                  spriteSPACE,
+                                  spriteK,
+                                  spriteE,
+                                  spriteY,
+                                  spriteSPACE,
+                                  spriteT,
+                                  spriteO,
+                                  spriteSPACE,
+                                  spriteS,
+                                  spriteT,
+                                  spriteA,
+                                  spriteR,
+                                  spriteT},
+                              22);
+    int textX = (720 - SPRITE_TEXT_WIDTH * 22) / 2;
+    int textY = 10;
+    display.plot_sprite((void *)pressKeyText, SPRITE_TEXT_WIDTH * 22, SPRITE_TEXT_HEIGHT,
+                        textX, textY);
+
+    // Affichage des crédits à droite du titre
+    displayCredits(centerX + TITLE_SCREEN_WIDTH + 10, centerY);
 }
 
 void GameDisplay::removeWelcomeScreen()
@@ -253,4 +296,89 @@ void GameDisplay::removeWelcomeScreen()
     int centerX = (720 - TITLE_SCREEN_WIDTH) / 2;
     int centerY = (240 - TITLE_SCREEN_HEIGHT) / 2;
     display.redraw_background_area(centerX, centerY, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT, level_sprite_indices);
+    // Clear the "Press any key to start" text
+    int textX = (720 - SPRITE_TEXT_WIDTH * 22) / 2;
+    int textY = 10;
+    display.redraw_background_area(textX, textY, SPRITE_TEXT_WIDTH * 22, SPRITE_TEXT_HEIGHT, level_sprite_indices);
+    // Clear the credits
+    display.redraw_background_area(centerX + TITLE_SCREEN_WIDTH + 10, centerY,
+                                   SPRITE_TEXT_WIDTH * 21, SPRITE_TEXT_HEIGHT * 4,
+                                   level_sprite_indices);
+}
+
+void GameDisplay::displayCredits(int x, int y)
+{
+    // Humbert de Chastellux
+    // Valentin Chaud
+    // Jordan Baumard
+    static unsigned char creditLineHumbert[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 21];
+    createWordFromSpritesText(creditLineHumbert,
+                              (const unsigned char *[]){
+                                  spriteH,
+                                  spriteU,
+                                  spriteM,
+                                  spriteB,
+                                  spriteE,
+                                  spriteR,
+                                  spriteT,
+                                  spriteSPACE,
+                                  spriteD,
+                                  spriteE,
+                                  spriteSPACE,
+                                  spriteC,
+                                  spriteH,
+                                  spriteA,
+                                  spriteS,
+                                  spriteT,
+                                  spriteE,
+                                  spriteL,
+                                  spriteL,
+                                  spriteU,
+                                  spriteX},
+                              21);
+
+    static unsigned char creditLineValentin[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 14];
+    createWordFromSpritesText(creditLineValentin,
+                              (const unsigned char *[]){
+                                  spriteV,
+                                  spriteA,
+                                  spriteL,
+                                  spriteE,
+                                  spriteN,
+                                  spriteT,
+                                  spriteI,
+                                  spriteN,
+                                  spriteSPACE,
+                                  spriteC,
+                                  spriteH,
+                                  spriteA,
+                                  spriteU,
+                                  spriteD},
+                              14);
+    static unsigned char creditLineJordan[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 14];
+    createWordFromSpritesText(creditLineJordan,
+                              (const unsigned char *[]){
+                                  spriteJ,
+                                  spriteO,
+                                  spriteR,
+                                  spriteD,
+                                  spriteA,
+                                  spriteN,
+                                  spriteSPACE,
+                                  spriteB,
+                                  spriteA,
+                                  spriteU,
+                                  spriteM,
+                                  spriteA,
+                                  spriteR,
+                                  spriteD},
+                              14);
+
+    display.plot_sprite((void *)creditLineValentin, SPRITE_TEXT_WIDTH * 14, SPRITE_TEXT_HEIGHT,
+                        x, y);
+    display.plot_sprite((void *)creditLineHumbert, SPRITE_TEXT_WIDTH * 21, SPRITE_TEXT_HEIGHT,
+                        x, y + SPRITE_TEXT_HEIGHT + 2);
+
+    display.plot_sprite((void *)creditLineJordan, SPRITE_TEXT_WIDTH * 14, SPRITE_TEXT_HEIGHT,
+                        x, y + 2 * (SPRITE_TEXT_HEIGHT + 2));
 }

@@ -20,10 +20,11 @@ class GameDisplay : public Threads
 
     void createWordFromSpritesText(unsigned char *buffer, const unsigned char *letters[], int length);
     void createNumberFromSpritesText(unsigned char *buffer, int number, int digits);
-    void afficherHUD(int oldscrollX);
-    void afficherGameOver();
-    void afficherWelcomeScreen();
+    void displayHUD(int oldscrollX);
+    void displayGameOver();
+    void displayWelcomeScreen();
     void removeWelcomeScreen();
+    void displayCredits(int x, int y);
 
 public:
     /**
