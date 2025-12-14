@@ -7,11 +7,21 @@
 #include <sprites/GoombaSprite.h>
 #include <sprites/TitleScreenSprite.h>
 
+/**
+ * @brief Construct a new Game Display:: Game Display object
+ * 
+ * @param data a pointer to the shared GameData object
+ */
 GameDisplay::GameDisplay(GameData *data) : display(720, 240, LEVEL_WIDTH, VBE_MODE::_8)
 {
     g = data;
 }
 
+/**
+ * @brief Main loop for the game display thread.
+ * This function initializes the display, shows the welcome screen,
+ * and then enters a loop to render the game world until the game is over.
+ */
 void GameDisplay::run()
 {
     g->ps.ecrireMot("[GameDisplay] Starting ...\n");
@@ -108,20 +118,27 @@ void GameDisplay::run()
     }
 }
 
+/**
+ * @brief Displays the Heads-Up Display (HUD) on the screen.
+ * The HUD shows "MARIO" with the score below it on the left,
+ * and "LIVES" with the number of lives below it on the right.
+ * The HUD is positioned relative to the screen, not the VRAM, and moves with the screen scroll.
+ * @param oldscrollX The previous scroll position, used to erase the old HUD.
+ */
 void GameDisplay::displayHUD(int oldscrollX)
 {
-    // Implémentation de l'affichage du HUD
-    // Le HUD commence à la position (25, 15) de l'écran affiché (/= VRAM)
-    // il affiche le mot "MARIO" puis le score sur 6 chiffres en dessous
+    // Implementation of the HUD display
+    // The HUD starts at position (25, 15) of the displayed screen (not VRAM)
+    // It displays the word "MARIO" then the 6-digit score below it
     int Xmargin = 25;
     int Ymargin = 15;
 
-    // Calcul de la position du HUD de gauche dans la VRAM en fonction du scrollX
+    // Calculate the position of the left HUD in VRAM based on scrollX
     int hudX = Xmargin + g->scrollX;
     int hudY = Ymargin;
     int oldHudX = Xmargin + oldscrollX;
 
-    // Calcul de la position du HUD de droite dans la VRAM en fonction du scrollX
+    // Calculate the position of the right HUD in VRAM based on scrollX
     int hudRightX = 720 - Xmargin + g->scrollX;
     int oldHudRightX = 720 - Xmargin + oldscrollX;
 
@@ -131,7 +148,7 @@ void GameDisplay::displayHUD(int oldscrollX)
     static unsigned char livesText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 5];
     static unsigned char livesNumberText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 2];
 
-    // Création du sprite "MARIO"
+    // Create the "MARIO" sprite
     createWordFromSpritesText(marioText,
                               (const unsigned char *[]){
                                   spriteM,
@@ -141,10 +158,10 @@ void GameDisplay::displayHUD(int oldscrollX)
                                   spriteO},
                               5);
 
-    // Création du sprite du score sur 6 chiffres
+    // Create the 6-digit score sprite
     createNumberFromSpritesText(scoreText, g->score, 6);
 
-    // Création du spite "LIVES"
+    // Create the "LIVES" sprite
     createWordFromSpritesText(livesText,
                               (const unsigned char *[]){
                                   spriteL,
@@ -154,12 +171,12 @@ void GameDisplay::displayHUD(int oldscrollX)
                                   spriteS},
                               5);
 
-    // Création du sprite du nombre de vies sur 2 chiffres
+    // Create the 2-digit lives number sprite
     createNumberFromSpritesText(livesNumberText, g->lives, 2);
 
-    // Affichage du HUD
+    // Display the HUD
 
-    // Affichage du mot "MARIO" et du score en dessous à gauche
+    // Display "MARIO" and the score below it on the left
     display.plot_moving_sprite((void *)marioText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
                                hudX, hudY,
                                oldHudX, hudY,
@@ -169,7 +186,7 @@ void GameDisplay::displayHUD(int oldscrollX)
                                oldHudX, hudY + SPRITE_TEXT_HEIGHT,
                                level_sprite_indices);
 
-    // Affichage du mot "LIVES" et du nombre de vies en dessous à droite
+    // Display "LIVES" and the number of lives below it on the right
     display.plot_moving_sprite((void *)livesText, SPRITE_TEXT_WIDTH * 5, SPRITE_TEXT_HEIGHT,
                                hudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
                                oldHudRightX - SPRITE_TEXT_WIDTH * 5, hudY,
@@ -180,10 +197,14 @@ void GameDisplay::displayHUD(int oldscrollX)
                                level_sprite_indices);
 }
 
-/* Creates a sprite representing a word by concatenating the corresponding letter sprites.
-    The function takes an array of letter sprites and the length of the word.
-    The resulting sprite is stored in the provided buffer.
-*/
+/** 
+ * @brief Creates a sprite representing a word by concatenating the corresponding letter sprites.
+ * The function takes an array of letter sprites and the length of the word.
+ * The resulting sprite is stored in the provided buffer.
+ * @param buffer The buffer to store the resulting word sprite.
+ * @param letters An array of pointers to the individual letter sprites.
+ * @param length The number of letters in the word.
+ */
 void GameDisplay::createWordFromSpritesText(unsigned char *buffer, const unsigned char *letters[], int length)
 {
     int index = 0;
@@ -199,13 +220,17 @@ void GameDisplay::createWordFromSpritesText(unsigned char *buffer, const unsigne
     }
 }
 
-/* Creates a sprite representing a number with a fixed number of digits
-    by concatenating the corresponding digit sprites.
-    If the number has fewer digits than specified, it is padded with leading zeros.
-    For example, createNumberFromSpritesText(buffer, 42, 5) will create a sprite for "00042".
-    The function uses the digit sprites defined in spritesText.h.
-    The resulting sprite is stored in the provided buffer.
-*/
+/** 
+ * @brief Creates a sprite representing a number with a fixed number of digits
+ * by concatenating the corresponding digit sprites.
+ * If the number has fewer digits than specified, it is padded with leading zeros.
+ * For example, createNumberFromSpritesText(buffer, 42, 5) will create a sprite for "00042".
+ * The function uses the digit sprites defined in spritesText.h.
+ * The resulting sprite is stored in the provided buffer.
+ * @param buffer The buffer to store the resulting number sprite.
+ * @param number The number to convert into a sprite.
+ * @param digits The fixed number of digits for the sprite (with leading zeros if necessary).
+ */
 void GameDisplay::createNumberFromSpritesText(unsigned char *buffer, int number, int digits)
 {
     const unsigned char *digitSprites[10] = {
@@ -234,12 +259,17 @@ void GameDisplay::createNumberFromSpritesText(unsigned char *buffer, int number,
     }
 }
 
+/**
+ * @brief Displays the "GAME OVER" screen.
+ * This function clears the screen to black, then displays the text "GAME OVER"
+ * in the center, followed by the final score and credits.
+ */
 void GameDisplay::displayGameOver()
 {
-    // Implémentation de l'affichage de l'écran de Game Over
-    // Ecran noir avec le texte "GAME OVER" au centre de l'écran
-    display.clear(0); // Effacer l'écran avec la couleur noire (index 0)
-    // Création du sprite "GAME OVER"
+    // Implementation of the Game Over screen display
+    // Black screen with "GAME OVER" text in the center
+    display.clear(0); // Clear the screen with black color (index 0)
+    // Create the "GAME OVER" sprite
     static unsigned char gameOverText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 10];
     createWordFromSpritesText(gameOverText,
                               (const unsigned char *[]){
@@ -254,31 +284,36 @@ void GameDisplay::displayGameOver()
                                   spriteR,
                                   spriteWARNING},
                               10);
-    // Affichage du sprite "GAME OVER" au centre de l'écran
+    // Display the "GAME OVER" sprite in the center of the screen
     int centerX = (720 - SPRITE_TEXT_WIDTH * 10) / 2;
     int centerY = (240 - SPRITE_TEXT_HEIGHT) / 2;
     display.plot_sprite((void *)gameOverText, SPRITE_TEXT_WIDTH * 10, SPRITE_TEXT_HEIGHT,
                         centerX, centerY);
-    // Score en dessous
+    // Score below
     static unsigned char scoreText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 6];
     createNumberFromSpritesText(scoreText, g->score, 6);
     display.plot_sprite((void *)scoreText, SPRITE_TEXT_WIDTH * 6, SPRITE_TEXT_HEIGHT,
                         centerX, centerY + SPRITE_TEXT_HEIGHT + 5);
 
-    // Crédit en haut à gauche
+    // Credits in the top left
     displayCredits(10, 10);
 }
 
+/**
+ * @brief Displays the welcome screen.
+ * This includes the game title sprite centered, a "Press any key to start"
+ * message, and the game credits.
+ */
 void GameDisplay::displayWelcomeScreen()
 {
-    // Implémentation de l'affichage de l'écran de bienvenue
-    // calcul de la position pour centrer le sprite
+    // Implementation of the welcome screen display
+    // Calculate position to center the sprite
     int centerX = (720 - TITLE_SCREEN_WIDTH) / 2;
     int centerY = (240 - TITLE_SCREEN_HEIGHT) / 2;
     display.plot_sprite((void *)title_screen_sprite, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT,
                         centerX, centerY);
 
-    // Affichage d'un message "Press any key to start" en haut de l'écran
+    // Display a "Press any key to start" message at the top of the screen
     static unsigned char pressKeyText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 22];
     createWordFromSpritesText(pressKeyText,
                               (const unsigned char *[]){
@@ -310,10 +345,14 @@ void GameDisplay::displayWelcomeScreen()
     display.plot_sprite((void *)pressKeyText, SPRITE_TEXT_WIDTH * 22, SPRITE_TEXT_HEIGHT,
                         textX, textY);
 
-    // Affichage des crédits à droite du titre
+    // Display credits to the right of the title
     displayCredits(centerX + TITLE_SCREEN_WIDTH + 10, centerY);
 }
 
+/**
+ * @brief Removes the welcome screen elements to prepare for the game start.
+ * It redraws the background over the title, the "press key" text, and the credits.
+ */
 void GameDisplay::removeWelcomeScreen()
 {
     // Clear the welcome screen by redrawing the background area
@@ -330,8 +369,14 @@ void GameDisplay::removeWelcomeScreen()
                                    level_sprite_indices);
 }
 
+/**
+ * @brief Displays the game credits at a specified location.
+ * @param x The x-coordinate to start drawing the credits.
+ * @param y The y-coordinate to start drawing the credits.
+ */
 void GameDisplay::displayCredits(int x, int y)
 {
+    // Credits:
     // Humbert de Chastellux
     // Valentin Chaud
     // Jordan Baumard
