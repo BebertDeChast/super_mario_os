@@ -22,7 +22,7 @@
 #include <Applications/MarioBros/Logic.h>
 #include <Applications/MarioBros/MobLogic.h>
 #include <Applications/GameDisplay/GameDisplay.h>
-#include <Applications/MarioBros/GoombaSprite.h>
+#include <sprites/GoombaSprite.h>
 
 extern char __e_kernel, __b_kernel, __b_data, __e_data, __b_stack, __e_load;
 int i;

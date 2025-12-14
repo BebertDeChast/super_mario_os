@@ -1,7 +1,7 @@
 #include "MobLogic.h"
 #include <Applications/MarioBros/Movement.h>
 #include <sextant/ordonnancements/preemptif/thread.h>
-#include <Applications/MarioBros/GoombaSprite.h>
+#include <sprites/GoombaSprite.h>
 
 MobLogic::MobLogic(GameData* d, int w, int h) {
     data = d;
