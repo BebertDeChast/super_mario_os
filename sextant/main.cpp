@@ -32,6 +32,11 @@ extern size_t bootstrap_stack_size;    // Taille de la pile d'exécution
 
 Semaphore render_next_frame;
 
+void global_timer_handler(int irq) {
+    ticTac(irq);
+    sched_clk(irq);
+}
+
 extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
 {
     Ecran ecran;
@@ -59,7 +64,7 @@ extern "C" void Sextant_main(unsigned long magic, unsigned long addr)
     thread_subsystem_setup(bootstrap_stack_bottom, bootstrap_stack_size);
     sched_subsystem_setup();
 
-    irq_set_routine(IRQ_TIMER, sched_clk);
+    irq_set_routine(IRQ_TIMER, global_timer_handler);
 
     // initialize pci bus to detect GPU address
     checkBus(0);
