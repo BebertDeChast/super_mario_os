@@ -148,15 +148,7 @@ void EcranBochs::plot_sprite(void *pict, ui16_t width, ui16_t height, ui16_t x, 
 */
 void EcranBochs::plot_moving_sprite(void *pict, ui16_t width, ui16_t height, ui16_t newX, ui16_t newY, ui16_t oldX, ui16_t oldY, const unsigned char *background)
 {
-    for (unsigned int row = 0; row < height; row++)
-    {
-        ui32_t base = (row + oldY) * virtualWidth + oldX;
-        for (unsigned int col = 0; col < width; col++)
-        {
-            ui8_t color = background[base + col];
-            framebuffer[base + col] = color;
-        }
-    }
+    redraw_background_area(oldX, oldY, width, height, background);
     plot_sprite(pict, width, height, newX, newY);
 }
 

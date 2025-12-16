@@ -315,8 +315,8 @@ void GameDisplay::displayWelcomeScreen()
     display.plot_sprite((void *)title_screen_sprite, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT,
                         centerX, centerY);
 
-    // Display a "Press any key to start" message at the top of the screen
-    static unsigned char pressKeyText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 22];
+    // Display a "Press any direction to start" message at the top of the screen
+    static unsigned char pressKeyText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 29];
     createWordFromSpritesText(pressKeyText,
                               (const unsigned char *[]){
                                   spriteP,
@@ -329,9 +329,15 @@ void GameDisplay::displayWelcomeScreen()
                                   spriteN,
                                   spriteY,
                                   spriteSPACE,
-                                  spriteK,
+                                  spriteD,
+                                  spriteI,
+                                  spriteR,
                                   spriteE,
-                                  spriteY,
+                                  spriteC,
+                                  spriteT,
+                                  spriteI,
+                                  spriteO,
+                                  spriteN,
                                   spriteSPACE,
                                   spriteT,
                                   spriteO,
@@ -341,10 +347,10 @@ void GameDisplay::displayWelcomeScreen()
                                   spriteA,
                                   spriteR,
                                   spriteT},
-                              22);
-    int textX = (720 - SPRITE_TEXT_WIDTH * 22) / 2;
+                              29);
+    int textX = (720 - SPRITE_TEXT_WIDTH * 29) / 2;
     int textY = 10;
-    display.plot_sprite((void *)pressKeyText, SPRITE_TEXT_WIDTH * 22, SPRITE_TEXT_HEIGHT,
+    display.plot_sprite((void *)pressKeyText, SPRITE_TEXT_WIDTH * 29, SPRITE_TEXT_HEIGHT,
                         textX, textY);
 
     // Display credits to the right of the title
