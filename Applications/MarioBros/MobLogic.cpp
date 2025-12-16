@@ -19,7 +19,7 @@ void MobLogic::run() {
         levelEnemies[i].startX = spawnX;
         levelEnemies[i].startY = 50;
         levelEnemies[i].spawned = false;
-        spawnX += (i % 2 == 0) ? 300 : 500;
+        spawnX += (i % 2 == 0) ? 150 : 200;
     }
 
     // Initialize Active Slots

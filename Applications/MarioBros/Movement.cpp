@@ -66,6 +66,21 @@ void update_goomba_position(int& x, int& y, int& vx, int& vy, int screenWidth, i
     int nextX = x + vx;
     int nextY = y + vy;
 
+    // Check for void ahead (smart goomba)
+    // If grounded, check if next position has ground
+    if (y > 170 && check_collision(x, y + 16, 16, 1)) {
+        bool willFall = false;
+        if (vx < 0) {
+            if (!check_collision(nextX, y + 16, 1, 1)) willFall = true;
+        } else if (vx > 0) {
+            if (!check_collision(nextX + 15, y + 16, 1, 1)) willFall = true;
+        }
+        if (willFall) {
+            vx = -vx;
+            nextX = x;
+        }
+    }
+
     // Collision X
     if (check_collision(nextX, y, 16, 16)) {
         vx = -vx; // Reverse direction

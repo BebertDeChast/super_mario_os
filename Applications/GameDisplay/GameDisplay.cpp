@@ -60,6 +60,7 @@ void GameDisplay::run()
         thread_yield();
     }
     removeWelcomeScreen();
+    displayHUD(oldScrollX);
 
     while (!g->gameOver)
     {
@@ -314,8 +315,8 @@ void GameDisplay::displayWelcomeScreen()
     display.plot_sprite((void *)title_screen_sprite, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT,
                         centerX, centerY);
 
-    // Display a "Press any key to start" message at the top of the screen
-    static unsigned char pressKeyText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 22];
+    // Display a "Press any direction to start" message at the top of the screen
+    static unsigned char pressKeyText[SPRITE_TEXT_WIDTH * SPRITE_TEXT_HEIGHT * 28];
     createWordFromSpritesText(pressKeyText,
                               (const unsigned char *[]){
                                   spriteP,
@@ -328,9 +329,15 @@ void GameDisplay::displayWelcomeScreen()
                                   spriteN,
                                   spriteY,
                                   spriteSPACE,
-                                  spriteK,
+                                  spriteD,
+                                  spriteI,
+                                  spriteR,
                                   spriteE,
-                                  spriteY,
+                                  spriteC,
+                                  spriteT,
+                                  spriteI,
+                                  spriteO,
+                                  spriteN,
                                   spriteSPACE,
                                   spriteT,
                                   spriteO,
@@ -340,10 +347,10 @@ void GameDisplay::displayWelcomeScreen()
                                   spriteA,
                                   spriteR,
                                   spriteT},
-                              22);
-    int textX = (720 - SPRITE_TEXT_WIDTH * 22) / 2;
+                              28);
+    int textX = (720 - SPRITE_TEXT_WIDTH * 28) / 2;
     int textY = 10;
-    display.plot_sprite((void *)pressKeyText, SPRITE_TEXT_WIDTH * 22, SPRITE_TEXT_HEIGHT,
+    display.plot_sprite((void *)pressKeyText, SPRITE_TEXT_WIDTH * 28, SPRITE_TEXT_HEIGHT,
                         textX, textY);
 
     // Display credits to the right of the title
@@ -361,9 +368,9 @@ void GameDisplay::removeWelcomeScreen()
     int centerY = (240 - TITLE_SCREEN_HEIGHT) / 2;
     display.redraw_background_area(centerX, centerY, TITLE_SCREEN_WIDTH, TITLE_SCREEN_HEIGHT, level_sprite_indices);
     // Clear the "Press any key to start" text
-    int textX = (720 - SPRITE_TEXT_WIDTH * 22) / 2;
+    int textX = (720 - SPRITE_TEXT_WIDTH * 28) / 2;
     int textY = 10;
-    display.redraw_background_area(textX, textY, SPRITE_TEXT_WIDTH * 22, SPRITE_TEXT_HEIGHT, level_sprite_indices);
+    display.redraw_background_area(textX, textY, SPRITE_TEXT_WIDTH * 28, SPRITE_TEXT_HEIGHT, level_sprite_indices);
     // Clear the credits
     display.redraw_background_area(centerX + TITLE_SCREEN_WIDTH + 10, centerY,
                                    SPRITE_TEXT_WIDTH * 21, SPRITE_TEXT_HEIGHT * 4,
