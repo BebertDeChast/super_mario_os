@@ -60,6 +60,7 @@ void GameDisplay::run()
         thread_yield();
     }
     removeWelcomeScreen();
+    displayHUD(oldScrollX);
 
     while (!g->gameOver)
     {
