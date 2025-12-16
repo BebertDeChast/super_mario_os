@@ -32,6 +32,31 @@ bool LogicThread::checkCollision(int x1, int y1, int w1, int h1, int x2, int y2,
 void LogicThread::run() {
     data->ps.ecrireMot("[Logic] Starting ...\n");
     
+    // Wait for user input on title screen
+    while (true) {
+        data->lock.P();
+        bool show = data->showWelcomeScreen;
+        data->lock.V();
+
+        if (!show) break;
+
+        render_next_frame.P(); // Wait for next frame tick
+
+        kbdData->lock.P();
+        bool pressed = kbdData->wantLeft || kbdData->wantRight || kbdData->wantJump;
+        // Consume inputs to prevent immediate movement
+        kbdData->wantLeft = false;
+        kbdData->wantRight = false;
+        kbdData->wantJump = false;
+        kbdData->lock.V();
+
+        if (pressed) {
+            data->lock.P();
+            data->showWelcomeScreen = false;
+            data->lock.V();
+        }
+    }
+
     data->lives = 3;
     invincibilityTimer = 0;
 
